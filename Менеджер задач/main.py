@@ -141,7 +141,7 @@ class DailyPlannerApp(QMainWindow):
         self.execute_combo = QComboBox(self)  # Создаем выпадающий список
         layout.addWidget(self.execute_combo)
 
-        # Загрузите исполнителей из файла execute.md и добавьте их в выпадающий список
+        # Загружаем исполнителей из файла execute.md и добавляем их в выпадающий список
         execute_file_path = os.path.join('DataBases', 'execute.md')
         if os.path.exists(execute_file_path):
             with open(execute_file_path, 'r', encoding='utf-8') as file:
@@ -194,20 +194,20 @@ class DailyPlannerApp(QMainWindow):
         self.add_execute_button.clicked.connect(self.add_execute)
         layout.addWidget(self.add_execute_button)
 
-        # Создайте горизонтальный виджет для кнопок "Добавить нового пользователя" и "Refresh"
+        # Создаем горизонтальный виджет для кнопок "Добавить нового пользователя" и "Refresh"
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.add_execute_button)
 
-        # Добавьте горизонтальный виджет к вертикальному слою
+        # Добавляем горизонтальный виджет к вертикальному слою
         self.layout.addLayout(button_layout)
-        # Создайте QTableWidget для исполнителей
+        # Создаем QTableWidget для исполнителей
         self.execute_table = QTableWidget(self)
         self.execute_table.setColumnCount(2)
         self.execute_table.setHorizontalHeaderLabels(["Исполнитель", "Количество задач на исполнителе"])
         self.execute_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
         self.execute_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)  # Расширяйте оба столбца
 
-        # Задайте названия заголовков для столбцов таблицы
+        # Задаем названия заголовков для столбцов таблицы
         self.execute_table.horizontalHeaderItem(0).setText("Исполнитель")
         self.execute_table.horizontalHeaderItem(1).setText("Количество задач на исполнителе")
 
