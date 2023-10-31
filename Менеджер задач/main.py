@@ -386,11 +386,9 @@ class DailyPlannerApp(QMainWindow):
         history_file_path = os.path.join('DataBases', 'history.md')
         if os.path.exists(history_file_path):
             with open(history_file_path, 'r', encoding='utf-8') as file:
-                for line in file:
-                    line = line.strip()  # Удалите лишние пробелы и символы новой строки
-                    if line:  # Пропустите пустые строки
-                        self.history_text.appendPlainText(line)
-
+                history = file.read()
+                self.history_text.setPlainText(history)
+                
     def add_execute(self):
         execute_name = self.execute_input.text().strip()
         if execute_name:
