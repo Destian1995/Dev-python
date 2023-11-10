@@ -309,6 +309,7 @@ class TaskManagerApp(QMainWindow):
             self.user_list.addItem(full_name)
             self.user_combobox.addItem(full_name)
             self.clear_user_entries()
+            self.update_filter_user_combobox()
         else:
             show_message("Внимание", "Заполните все обязательные поля!")
         self.load_users()
@@ -321,21 +322,17 @@ class TaskManagerApp(QMainWindow):
             with open("db_links/users.json", "r") as user_file:
                 users = json.load(user_file)
 
-            # Find the user in the list
             for user in users:
                 full_info = f"{user['full_name']} ({user['position']}, {user['department']})"
                 if full_info == selected_user:
-                    # Remove the user from the list
                     users.remove(user)
 
-            # Update the users.json file
             with open("db_links/users.json", "w") as user_file:
                 json.dump(users, user_file, indent=4)
 
-            # Clear and reload users into the dropdown menu
             self.user_combobox.clear()
             self.load_users_to_combobox()
-
+            self.update_filter_user_combobox()
             self.user_combobox.removeItem(self.user_combobox.findText(selected_user))
             self.user_list.takeItem(selected_user_index)
         self.load_users()
@@ -363,6 +360,11 @@ class TaskManagerApp(QMainWindow):
             users = json.load(user_file)
         for user in users:
             self.user_combobox.addItem(user["full_name"])
+
+    def update_filter_user_combobox(self):
+        self.filter_user_combobox.clear()
+        self.filter_user_combobox.addItem("Все текущие задачи")
+        self.filter_user_combobox.addItems(self.user_combobox.itemText(i) for i in range(self.user_combobox.count()))
 
     def load_users(self):
         # Clear the existing items from the user list
@@ -464,10 +466,20 @@ def main():
         }
 
         QPushButton {
-            background-color: #6FB3D2; /* Светло-синий цвет кнопок */
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        background-color: #6FB3D2; /* Светло-синий цвет кнопок */
+        color: white;
+        border: 2px solid #6FB3D2; /* Добавление тонкой обводки */
+        border-radius: 5px; /* Закругление углов */
+        padding: 10px 20px;
+        transition: background-color 0.3s, color 0.3s; /* Добавление анимации перехода цветов */
+        }
+
+        QPushButton:hover {
+        background-color: #5C98C2; /* Изменение цвета при наведении курсора */
+        }
+
+        QPushButton:pressed {
+        background-color: #4A7B9D; /* Изменение цвета при нажатии кнопки */
         }
 
         QTabWidget::pane {
@@ -479,14 +491,28 @@ def main():
         }
 
         QTabBar::tab {
-            background-color: #444; /* Цвет закладок */
-            color: white;
-            padding: 5px 20px;
+        background-color: #444; /* Цвет закладок */
+        color: white;
+        padding: 5px 20px;
+        border-right: 1px solid white; /* Добавление разграничителя между вкладками */
+        transition: background-color 0.3s, color 0.3s; /* Добавление анимации перехода цветов */
+        }
+
+        QTabBar::tab:last {
+        border-right: none; /* Убираем разграничитель у последней вкладки */
+        }
+
+
+        QTabBar::tab:hover {
+        background-color: #6FB3D2; /* Изменение цвета при наведении курсора */
+        border-radius: 5px 5px 0 0; /* Закругление верхних углов */
         }
 
         QTabBar::tab:selected {
-            background-color: #6FB3D2; /* Цвет активной закладки */
-            color: white;
+        background-color: #6FB3D2; /* Цвет активной закладки */
+        color: white;
+        border-radius: 5px 5px 0 0; /* Закругление верхних углов */
+        opacity: 0.8; /* Уменьшение прозрачности для эффекта медленной заливки */
         }
 
         QLineEdit {
