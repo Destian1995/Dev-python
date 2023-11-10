@@ -1,24 +1,73 @@
-import sys
-import os
 import json
-import locale
+import os
+import sys
 from datetime import datetime
-from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, \
-    QTextEdit, QPushButton, QListWidget, QFormLayout, QMessageBox, QComboBox, QCalendarWidget, QDialog, QCheckBox
-from PyQt6.QtGui import QColor, QTextOption
-from PyQt6.QtCore import Qt, QDate
+
+from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, \
-    QTextEdit, QPushButton, QListWidget, QComboBox, QCalendarWidget, QDialog, QCheckBox, QLabel, QSizePolicy, \
-    QAbstractItemView, QListWidgetItem, QTextBrowser
+    QTextEdit, QPushButton, QListWidget, QComboBox, QCalendarWidget, QDialog, QCheckBox, QListWidgetItem
+from PyQt6.QtWidgets import QHBoxLayout, QMessageBox
 
 ver = '1.0.1'
+
+
+def create_directory_and_files():
+    if not os.path.exists("db_links"):
+        os.mkdir("db_links")
+    if not os.path.exists("db_links/users.json"):
+        with open("db_links/users.json", "w") as user_file:
+            json.dump([], user_file)
+    if not os.path.exists("db_links/tasks.json"):
+        with open("db_links/tasks.json", "w") as task_file:
+            json.dump([], task_file)
+    if not os.path.exists("db_links/reports.md"):
+        with open("db_links/reports.md", "w") as report_file:
+            report_file.write("Reports:\n\n")
+
+
+def get_due_date(task):
+    due_date_str = task.get("due_date", "")
+
+    # Check if due_date_str is a list, convert it to a string
+    if isinstance(due_date_str, list):
+        due_date_str = ".".join(map(str, due_date_str))
+
+    return QDate.fromString(due_date_str, "dd.MM.yyyy")
+
+
+def show_message(title, message):
+    msg = QMessageBox()
+    msg.setWindowTitle(title)
+    msg.setText(message)
+    msg.exec()
+
 
 class TaskManagerApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.reports_text = None
+        self.search_checkbox = None
+        self.delete_user_button = None
+        self.search_entry = None
+        self.user_list = None
+        self.create_user_button = None
+        self.department_entry = None
+        self.position_entry = None
+        self.user_name_entry = None
+        self.filter_user_combobox = None
+        self.calendar_dialog = None
+        self.calendar_button = None
+        self.close_task_button = None
+        self.task_list = None
+        self.create_task_button = None
+        self.priority_combobox = None
+        self.user_combobox = None
+        self.task_entry = None
+        self.tab2 = None
+        self.tab3 = None
+        self.tab1 = None
         self.setWindowTitle("Управление задачами " + ver)
         self.setGeometry(500, 200, 900, 700)
 
@@ -26,22 +75,9 @@ class TaskManagerApp(QMainWindow):
         self.setCentralWidget(self.tab_widget)
         self.selected_date = QDate.currentDate()
 
-        self.create_directory_and_files()
+        create_directory_and_files()
 
         self.init_ui()
-
-    def create_directory_and_files(self):
-        if not os.path.exists("db_links"):
-            os.mkdir("db_links")
-        if not os.path.exists("db_links/users.json"):
-            with open("db_links/users.json", "w") as user_file:
-                json.dump([], user_file)
-        if not os.path.exists("db_links/tasks.json"):
-            with open("db_links/tasks.json", "w") as task_file:
-                json.dump([], task_file)
-        if not os.path.exists("db_links/reports.md"):
-            with open("db_links/reports.md", "w") as report_file:
-                report_file.write("Reports:\n\n")
 
     def init_ui(self):
         self.tab1 = QWidget()
@@ -205,14 +241,14 @@ class TaskManagerApp(QMainWindow):
             self.clear_task_entries()
             self.load_tasks()
         else:
-            self.show_message("Внимание", "Заполните все обязательные поля!")
+            show_message("Внимание", "Заполните все обязательные поля!")
 
     def close_task(self):
         selected_task = self.task_list.currentItem()
         if selected_task:
             self.show_report_dialog()  # Показываем диалог для ввода отчета
         else:
-            self.show_message("Внимание", "Выберите задачу!")
+            show_message("Внимание", "Выберите задачу!")
 
     def show_report_dialog(self):
         selected_task_index = self.task_list.currentRow()
@@ -246,13 +282,12 @@ class TaskManagerApp(QMainWindow):
                     self.load_reports()
                     self.load_tasks()  # Reload tasks in the UI
                 else:
-                    self.show_message("Внимание", "Введите отчет!")
+                    show_message("Внимание", "Введите отчет!")
             else:
-                self.show_message("Внимание", "Выберите задачу!")
+                show_message("Внимание", "Выберите задачу!")
 
     def clear_close_report_entry(self):
         pass  # Ничего не делаем, так как очистка не требуется
-
 
     def create_user(self):
         full_name = self.user_name_entry.text()
@@ -275,7 +310,7 @@ class TaskManagerApp(QMainWindow):
             self.user_combobox.addItem(full_name)
             self.clear_user_entries()
         else:
-            self.show_message("Внимание", "Заполните все обязательные поля!")
+            show_message("Внимание", "Заполните все обязательные поля!")
         self.load_users()
 
     def delete_user(self):
@@ -351,11 +386,11 @@ class TaskManagerApp(QMainWindow):
         today = QDate.currentDate()
 
         # Sort tasks by due date and priority
-        tasks.sort(key=lambda x: (self.get_due_date(x), x.get("priority", "")))
+        tasks.sort(key=lambda x: (get_due_date(x), x.get("priority", "")))
 
         for task in tasks:
             if selected_user_index == 0 or task.get("assign_to") == selected_user:
-                due_date = self.get_due_date(task)
+                due_date = get_due_date(task)
 
                 task_text = f"{task['task_name']} - Исполнитель: {task['assign_to']} - Дедлайн: {due_date.toString('dd.MM.yyyy')} - Приоритет: {task.get('priority', 'Н/Д')}"
 
@@ -369,23 +404,10 @@ class TaskManagerApp(QMainWindow):
 
         self.task_list.setStyleSheet("QListWidget::item { border-bottom: 1px solid white; }")
 
-    def show_message(self, title, message):
-        msg = QMessageBox()
-        msg.setWindowTitle(title)
-        msg.setText(message)
-        msg.exec()
-
     def remove_completed_task_from_ui(self, selected_task_index):
         self.task_list.takeItem(selected_task_index)
 
-    def get_due_date(self, task):
-        due_date_str = task.get("due_date", "")
 
-        # Check if due_date_str is a list, convert it to a string
-        if isinstance(due_date_str, list):
-            due_date_str = ".".join(map(str, due_date_str))
-
-        return QDate.fromString(due_date_str, "dd.MM.yyyy")
 class CalendarDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -431,6 +453,7 @@ class QTextEditDialog(QDialog):
 
     def on_calendar_clicked(self, date):
         pass
+
 
 def main():
     app = QApplication(sys.argv)
