@@ -2,14 +2,15 @@ import json
 import os
 import sys
 from datetime import datetime
+from PyQt6.QtCore import QDate, QEvent, QObject
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QBrush
+from PyQt6.QtGui import QColor, QFont, QCursor
+from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, \
+    QTextEdit, QPushButton, QListWidget, QComboBox, QCalendarWidget, QDialog, QCheckBox, QListWidgetItem, \
+    QHBoxLayout, QMessageBox, QMenu, QApplication, QLabel
 
-from PyQt6.QtCore import QDate
-from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QFormLayout, QLineEdit, \
-    QTextEdit, QPushButton, QListWidget, QComboBox, QCalendarWidget, QDialog, QCheckBox, QListWidgetItem
-from PyQt6.QtWidgets import QHBoxLayout, QMessageBox
-
-ver = '1.0.1'
+ver = '1.1.0'
 
 
 def create_directory_and_files():
@@ -43,10 +44,56 @@ def show_message(title, message):
     msg.exec()
 
 
+def copy_to_clipboard(email):
+    clipboard = QApplication.clipboard()
+    clipboard.setText(email)
+
+    # Show a temporary message
+    msg = QMessageBox()
+    msg.setWindowTitle("Успешно")
+    msg.setText(f"Адрес {email} скопирован")
+    msg.exec()
+
+
+def copy_vladislav_email():
+    copy_to_clipboard("vladislav.chernyak@open.ru")
+
+
+def copy_lerdonia_email():
+    copy_to_clipboard("Lerdonia@open.ru")
+
+
+def show_email_menu(email):
+    menu = QMenu()
+
+    copy_action = menu.addAction("Скопировать адрес")
+
+    # Connect actions to slots
+    copy_action.triggered.connect(lambda: copy_to_clipboard(email))
+
+    # Show the menu at the cursor position
+    menu.exec(QCursor.pos())
+
+
+def compare_due_date(task):
+    due_date = get_due_date(task)
+    current_date = QDate.currentDate()
+
+    # Calculate the difference between the due date and the current date
+    date_difference = (due_date.toJulianDay() - current_date.toJulianDay())
+
+    return date_difference
+
+
 class TaskManagerApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.sort_order_due_date = None
+        self.sort_order = None
+        self.sorting_combobox = None
+        self.email_label2 = None
+        self.email_label1 = None
         self.reports_text = None
         self.search_checkbox = None
         self.delete_user_button = None
@@ -68,6 +115,7 @@ class TaskManagerApp(QMainWindow):
         self.tab2 = None
         self.tab3 = None
         self.tab1 = None
+        self.tab4 = None
         self.setWindowTitle("Управление задачами " + ver)
         self.setGeometry(500, 200, 900, 700)
 
@@ -83,14 +131,21 @@ class TaskManagerApp(QMainWindow):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tab3 = QWidget()
+        self.tab4 = QWidget()  # Initialize the new tab
 
         self.tab_widget.addTab(self.tab1, "Управление задачами")
         self.tab_widget.addTab(self.tab2, "Исполнители")
         self.tab_widget.addTab(self.tab3, "Отчеты")
+        self.tab_widget.addTab(self.tab4, "Связь с разработчиком")
+
+        self.sorting_combobox = QComboBox()
+        self.sorting_combobox.addItems(["По дедлайну", "По приоритету"])
+        self.sorting_combobox.currentIndexChanged.connect(self.sort_tasks)
 
         self.init_task_tab()
         self.init_user_tab()
         self.init_report_tab()
+        self.init_contact_tab()  # Initialize the new contact tab
 
     def init_task_tab(self):
         layout = QVBoxLayout()
@@ -102,6 +157,10 @@ class TaskManagerApp(QMainWindow):
         self.user_combobox = QComboBox()
         self.load_users_to_combobox()
         self.task_list = QListWidget()
+
+        # Set selection mode and behavior
+        self.task_list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
+        self.task_list.setSelectionBehavior(QListWidget.SelectionBehavior.SelectRows)
 
         task_entry_layout = QVBoxLayout()
         task_entry_layout.addWidget(self.task_entry)
@@ -139,6 +198,7 @@ class TaskManagerApp(QMainWindow):
         self.filter_user_combobox.addItems(self.user_combobox.itemText(i) for i in range(self.user_combobox.count()))
         self.filter_user_combobox.currentIndexChanged.connect(self.load_tasks)
         form_layout.addRow("Отобразить задачи для исполнителя:", self.filter_user_combobox)
+        form_layout.addRow("Сортировка:", self.sorting_combobox)
 
         # Загрузка задач из файла
         self.load_tasks()
@@ -195,6 +255,35 @@ class TaskManagerApp(QMainWindow):
         # Загрузка отчетов из файла
         self.load_reports()
 
+    def init_contact_tab(self):
+        layout = QVBoxLayout()
+
+        # Use QLabel instead of QTextBrowser for the developer's emails
+        personal_label = QLabel("Личный адрес : ")
+        personal_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        personal_label.setStyleSheet("font-size: 16px; color: #6FB3D2;")
+
+        email_label1 = QLabel("Lerdonia@mail.ru")
+        email_label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        email_label1.setStyleSheet("font-size: 20px; font-weight: bold; color: white;")  # Larger and bold
+        email_label1.mousePressEvent = lambda event: show_email_menu("Lerdonia@mail.ru")
+
+        corporate_label = QLabel("Корпоративный адрес : ")
+        corporate_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        corporate_label.setStyleSheet("font-size: 16px; color: #6FB3D2;")
+
+        email_label2 = QLabel("vladislav.chernyak@open.ru")
+        email_label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        email_label2.setStyleSheet("font-size: 20px; font-weight: bold; color: white;")  # Larger and bold
+        email_label2.mousePressEvent = lambda event: show_email_menu("vladislav.chernyak@open.ru")
+
+        layout.addWidget(personal_label)
+        layout.addWidget(email_label1)
+        layout.addWidget(corporate_label)
+        layout.addWidget(email_label2)
+
+        self.tab4.setLayout(layout)
+
     def filter_reports(self):
         search_text = self.search_entry.text().lower()
         search_in_reports = self.search_checkbox.isChecked()
@@ -212,6 +301,110 @@ class TaskManagerApp(QMainWindow):
                 filtered_reports += report + "\n\n"
 
         self.reports_text.setPlainText(filtered_reports)
+
+    def sort_tasks(self):
+        current_sorting_option = self.sorting_combobox.currentText()
+
+        if current_sorting_option == "По дедлайну":
+            self.sort_tasks_by_option("due_date")
+        elif current_sorting_option == "По приоритету":
+            self.sort_tasks_by_option("priority")
+
+    def sort_tasks_by_option(self, sorting_option):
+        # Load tasks from file
+        with open("db_links/tasks.json", "r") as task_file:
+            tasks = json.load(task_file)
+
+        # Sort tasks based on the specified option
+        if sorting_option == "priority":
+            tasks.sort(key=lambda x: ({"Высокий": 0, "Средний": 1, "Низкий": 2}.get(x.get("priority", ""), 2)))
+        elif sorting_option == "due_date":
+            tasks.sort(key=lambda x: (compare_due_date(x), x.get("priority", "")))
+
+        # Clear the task list
+        self.task_list.clear()
+
+        # Update the task list UI
+        self.update_task_list_ui(tasks)
+
+    def sort_tasks_by_priority(self):
+        # Load tasks from file
+        with open("db_links/tasks.json", "r") as task_file:
+            json.load(task_file)
+
+        # Sort tasks based on priority
+        self.sort_tasks_by_option("priority")
+
+    def sort_tasks_by_due_date(self):
+        # Load tasks from file
+        with open("db_links/tasks.json", "r") as task_file:
+            tasks = json.load(task_file)
+
+        # Compare due dates and store in an array
+        tasks_with_date_difference = [compare_due_date(task) for task in tasks]
+
+        # Sort tasks based on Date Difference
+        tasks_with_date_difference.sort(key=lambda x: x["date_difference"])
+
+        # Clear existing items
+        self.task_list.clear()
+
+        # Toggle sorting order between ascending and descending
+        if not hasattr(self, 'sort_order_due_date') or self.sort_order_due_date == 'asc':
+            self.sort_order_due_date = 'desc'
+        else:
+            self.sort_order_due_date = 'asc'
+
+        # Reverse the order if sorting in descending order
+        if self.sort_order_due_date == 'desc':
+            tasks_with_date_difference.reverse()
+
+        for task_with_difference in tasks_with_date_difference:
+            task = task_with_difference["task"]
+            due_date = get_due_date(task)
+
+            task_text = f"{task['task_name']} - Исполнитель: {task['assign_to']} - Дедлайн: {due_date.toString('dd.MM.yyyy')} - Приоритет: {task.get('priority', 'Н/Д')}"
+            # Create a QListWidgetItem for each task
+            item = QListWidgetItem(task_text)
+            # Add the task item to the list
+            self.task_list.addItem(item)
+
+        self.load_tasks()
+
+    def update_task_list_by_due_date(self, tasks):
+        self.task_list.clear()
+        # Toggle sorting order between ascending and descending
+        if not hasattr(self, 'sort_order_due_date') or self.sort_order_due_date == 'asc':
+            self.sort_order_due_date = 'desc'
+        else:
+            self.sort_order_due_date = 'asc'
+
+        # Sort tasks based on due date
+        tasks.sort(key=lambda x: get_due_date(x))
+
+        for task in tasks:
+            due_date = get_due_date(task)
+
+            task_text = f"{task['task_name']} - Исполнитель: {task['assign_to']} - Дедлайн: {due_date.toString('dd.MM.yyyy')} - Приоритет: {task.get('priority', 'Н/Д')}"
+            # Create a QListWidgetItem for each task
+            item = QListWidgetItem(task_text)
+            # Add the task item to the list
+            self.task_list.addItem(item)
+        self.load_tasks()
+
+    def update_task_list_ui(self, tasks):
+        # Clear existing items
+        self.task_list.clear()
+
+        # Add tasks to the list without sorting
+        for task in tasks:
+            due_date = get_due_date(task)
+
+            task_text = f"{task['task_name']} - Исполнитель: {task['assign_to']} - Дедлайн: {due_date.toString('dd.MM.yyyy')} - Приоритет: {task.get('priority', 'Н/Д')}"
+            # Create a QListWidgetItem for each task
+            item = QListWidgetItem(task_text)
+            # Add the task item to the list
+            self.task_list.addItem(item)
 
     def on_calendar_clicked(self, date):
         pass
@@ -244,50 +437,59 @@ class TaskManagerApp(QMainWindow):
             show_message("Внимание", "Заполните все обязательные поля!")
 
     def close_task(self):
-        selected_task = self.task_list.currentItem()
-        if selected_task:
-            self.show_report_dialog()  # Показываем диалог для ввода отчета
+        selected_task_index = self.task_list.currentRow()
+        if selected_task_index >= 0:
+            self.show_report_dialog(selected_task_index)
         else:
             show_message("Внимание", "Выберите задачу!")
 
-    def show_report_dialog(self):
-        selected_task_index = self.task_list.currentRow()
-        if selected_task_index >= 0:
-            selected_task = self.task_list.item(selected_task_index).text()
-            dialog = QTextEditDialog(self)
-            result = dialog.exec()
-            if result == QDialog.DialogCode.Accepted:
-                close_report = dialog.get_text()
-                if close_report:
-                    now = datetime.now().strftime("%d.%m.%Y %H:%M")
+    def show_report_dialog(self, selected_task_index):
+        selected_task = self.task_list.item(selected_task_index).text()
+        dialog = QTextEditDialog(self)
+        result = dialog.exec()
+        if result == QDialog.DialogCode.Accepted:
+            close_report = dialog.get_text()
+            if close_report:
+                now = datetime.now().strftime("%d.%m.%Y %H:%M")
 
-                    # Get the assigned user from the task data
-                    with open("db_links/tasks.json", "r") as task_file:
-                        tasks = json.load(task_file)
-                    assigned_user = tasks[selected_task_index].get("assign_to", "")
+                # Get the assigned user from the task data
+                with open("db_links/tasks.json", "r") as task_file:
+                    tasks = json.load(task_file)
+                assigned_user = tasks[selected_task_index].get("assign_to", "")
 
-                    report_text = f"Исполнитель: {assigned_user}\n"
-                    report_text += f"Задача: {selected_task}\n"
-                    report_text += f"Время закрытия: {now}\nОтчет:\n{close_report}\n\n"
+                report_text = f"Исполнитель: {assigned_user}\n"
+                report_text += f"Задача: {selected_task}\n"
+                report_text += f"Время закрытия: {now}"
 
-                    with open("db_links/reports.md", "a") as report_file:
-                        report_file.write(report_text)
+                # Добавляем информацию о просрочке, если задача просрочена
+                if "Просрочено" in selected_task:
+                    # Получаем количество дней и часов просрочки
+                    overdue_info = selected_task.split("Просрочено на ")[1].split(" ")[0]
+                    days_overdue = int(overdue_info)
+                    hours_overdue = int(overdue_info.split("дней")[1].split("часов")[0])
 
-                    # Remove the completed task from tasks.json
-                    del tasks[selected_task_index]
-                    with open("db_links/tasks.json", "w") as task_file:
-                        json.dump(tasks, task_file, indent=4)
+                    report_text += f" - Задача была просрочена на {days_overdue} дней {hours_overdue} часов"
 
-                    self.clear_close_report_entry()
-                    self.load_reports()
-                    self.load_tasks()  # Reload tasks in the UI
-                else:
-                    show_message("Внимание", "Введите отчет!")
+                report_text += f"\nОтчет:\n{close_report}\n\n"
+
+                with open("db_links/reports.md", "a") as report_file:
+                    report_file.write(report_text)
+
+                # Remove the completed task from tasks.json
+                del tasks[selected_task_index]
+                with open("db_links/tasks.json", "w") as task_file:
+                    json.dump(tasks, task_file, indent=4)
+
+                self.clear_close_report_entry()
+                self.load_reports()
+                self.load_tasks()  # Reload tasks in the UI
             else:
-                show_message("Внимание", "Выберите задачу!")
+                show_message("Внимание", "Введите отчет!")
+        else:
+            show_message("Внимание", "Выберите задачу!")
 
     def clear_close_report_entry(self):
-        pass  # Ничего не делаем, так как очистка не требуется
+        pass  # Пока ничего не делаем, так как очистка не требуется
 
     def create_user(self):
         full_name = self.user_name_entry.text()
@@ -383,11 +585,10 @@ class TaskManagerApp(QMainWindow):
         selected_user_index = self.filter_user_combobox.currentIndex()
         selected_user = self.filter_user_combobox.currentText()
 
-        self.task_list.clear()  # Clear the existing items
-
         today = QDate.currentDate()
+        self.task_list.clear()
 
-        # Sort tasks by due date and priority
+        # Sort tasks based on due date and priority
         tasks.sort(key=lambda x: (get_due_date(x), x.get("priority", "")))
 
         for task in tasks:
@@ -396,15 +597,34 @@ class TaskManagerApp(QMainWindow):
 
                 task_text = f"{task['task_name']} - Исполнитель: {task['assign_to']} - Дедлайн: {due_date.toString('dd.MM.yyyy')} - Приоритет: {task.get('priority', 'Н/Д')}"
 
-                # Check if the due date is today and set light blue color
-                if due_date == today:
-                    item = QListWidgetItem(task_text)
-                    item.setForeground(QColor(173, 216, 230))  # Light Blue color
-                    self.task_list.addItem(item)
-                else:
-                    self.task_list.addItem(task_text)
+                # Create a QListWidgetItem for each task
+                item = QListWidgetItem(task_text)
 
-        self.task_list.setStyleSheet("QListWidget::item { border-bottom: 1px solid white; }")
+                # Set foreground color based on due date
+                if due_date == today:
+                    item.setForeground(QColor(173, 216, 230))  # Light Blue color
+
+                # Set background color based on priority
+                priority = task.get('priority', '').lower()
+                if priority == 'низкий':
+                    item.setBackground(QBrush(QColor(0, 255, 0)))  # Green
+                elif priority == 'средний':
+                    item.setBackground(QBrush(QColor(255, 255, 0)))  # Yellow
+                elif priority == 'высокий':
+                    item.setBackground(QBrush(QColor(255, 0, 0)))  # Red
+                    item.setFont(QFont("Arial", weight=QFont.Weight.Bold))  # Set text to bold
+
+                # Enable item selection
+                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsSelectable)
+
+                # Add the task item to the list
+                self.task_list.addItem(item)
+
+        # Set the style for the task list
+        self.task_list.setStyleSheet(
+            "QListWidget::item:selected { background-color: purple; }"  # Set the selected item background color
+            "QListWidget::item { border-bottom: 1px solid white; }"
+        )
 
     def remove_completed_task_from_ui(self, selected_task_index):
         self.task_list.takeItem(selected_task_index)
@@ -455,6 +675,20 @@ class QTextEditDialog(QDialog):
 
     def on_calendar_clicked(self, date):
         pass
+
+
+class HoverFilter(QObject):
+    def __init__(self, enter_callback, leave_callback, parent=None):
+        super().__init__(parent)
+        self.enter_callback = enter_callback
+        self.leave_callback = leave_callback
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Enter:
+            self.enter_callback()
+        elif event.type() == QEvent.Type.Leave:
+            self.leave_callback()
+        return super().eventFilter(obj, event)
 
 
 def main():
