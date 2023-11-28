@@ -19,6 +19,64 @@ logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 ver = "1.1.5"
 
 
+class AssignExecutorDialog(QDialog):
+    def __init__(self, user_names, parent=None):
+        super(AssignExecutorDialog, self).__init__(parent)
+
+        self.setWindowTitle('Назначение исполнителя')
+        self.setFixedSize(300, 150)
+
+        main_layout = QVBoxLayout(self)
+
+        label_layout = QHBoxLayout()
+        label_layout.addWidget(QLabel('Выберите исполнителя:'))
+
+        combo_layout = QHBoxLayout()
+        self.executor_combo = QComboBox()
+        self.executor_combo.addItems(user_names)
+        combo_layout.addWidget(self.executor_combo)
+
+        button_layout = QHBoxLayout()
+        btn_ok = QPushButton('ОК')
+        btn_cancel = QPushButton('Отмена')
+        btn_ok.clicked.connect(self.accept)
+        btn_cancel.clicked.connect(self.reject)
+        button_layout.addWidget(btn_ok)
+        button_layout.addWidget(btn_cancel)
+
+        main_layout.addLayout(label_layout)
+        main_layout.addLayout(combo_layout)
+        main_layout.addLayout(button_layout)
+
+        self.setStyleSheet(
+            """
+            QLabel {
+                font-size: 14px;
+                color: #333;
+            }
+            QComboBox {
+                font-size: 14px;
+            }
+            QPushButton {
+                font-size: 14px;
+                background-color: #3498db;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;  /* Изменен цвет фона при наведении */
+            }
+            """
+        )
+
+
 class ReportDialog(QDialog):
     def __init__(self, users, parent=None):
         super(ReportDialog, self).__init__(parent)
@@ -38,7 +96,7 @@ class ReportDialog(QDialog):
         self.combo_box_executor.setCurrentIndex(0)  # Set the default selected index
 
         self.button_ok = QPushButton('Ок', self)
-        self.button_ok.setStyleSheet("background-color: #4CAF50; color: white;")  # Apply styles to the button
+        self.button_ok.setStyleSheet("background-color: #3498db; color: white;")  # Apply styles to the button
         self.button_ok.clicked.connect(self.accept)
 
         layout.addWidget(self.label)
@@ -90,8 +148,8 @@ class CreateTaskDialog(QDialog):
         layout.addWidget(self.button_create, 4, 0)
         layout.addWidget(self.button_cancel, 4, 1)
 
-        self.button_create.setStyleSheet("background-color: #008CBA; color: white;")  # Стили кнопки
-        self.button_cancel.setStyleSheet("background-color: #f44336; color: white;")  # Стили кнопки
+        self.button_create.setStyleSheet("background-color: #008CBA; color: white;")
+        self.button_cancel.setStyleSheet("background-color: #f44336; color: white;")
 
         self.button_create.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
@@ -143,6 +201,11 @@ class TaskManager(QMainWindow):
             }
 
             QTabBar::tab:selected {
+                background-color: #3498db;  /* Belize Hole */
+                color: white;
+            }
+
+            QTabBar::tab:hover {
                 background-color: #3498db;  /* Belize Hole */
                 color: white;
             }
@@ -435,37 +498,23 @@ class TaskManager(QMainWindow):
         if selected_row >= 0:
             task_id = int(self.tree_tasks.item(selected_row, 0).text())
 
-            # Всплывающее окно для выбора исполнителя
-            executor, ok_pressed = QInputDialog.getItem(
-                self,
-                'Назначение',
-                'Выберите исполнителя:',
-                self.get_user_names(),
-                0,
-                False
-            )
+            # Создаем кастомное диалоговое окно
+            dialog = AssignExecutorDialog(self.get_user_names(), self)
+            result = dialog.exec_()
 
-            if ok_pressed:
-                # Обновляем значение в таблице задач
+            if result == QDialog.Accepted:
+                executor = dialog.executor_combo.currentText()
+
+                # Остальной код остается без изменений
                 self.tree_tasks.setItem(selected_row, 5, QTableWidgetItem(executor))
-
-                # Обновляем данные в вашем внутреннем объекте задачи
                 task = self.get_task_by_id(task_id)
                 if task:
                     task['Исполнитель'] = executor
                     task['Статус'] = 'В работе'
-
-                    # Теперь обновим CSV-файл
                     tasks_df = pd.DataFrame(self.tasks)
                     tasks_df.to_csv('db_tas/tasks.csv', index=False, encoding='utf-8')
-
-                    # Загружаем обновленные данные
                     self.load_tasks()
-
-                    # Обновляем список пользователей
                     self.update_users(executor)
-
-                    # Обновляем таблицу задач
                     self.update_task_table()
 
     def update_users(self, new_user):
@@ -1229,7 +1278,7 @@ class TaskManager(QMainWindow):
     def get_user_names(self):
         users = self.load_users()
         if users is not None:
-            return [user['name'] for user in users]
+            return [f"{user['name']} ({user['position']})" for user in users]
         else:
             return []
 
