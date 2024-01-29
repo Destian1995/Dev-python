@@ -273,13 +273,6 @@ class DailyPlannerApp(QMainWindow):
         with open(task_file_path, 'a', encoding='utf-8') as file:
             file.write(f"- {task_text} (Исполнитель: {execute}, До {due_date}, Приоритет: {priority})\n")
 
-    def clear_history(self):
-        history_file_path = os.path.join('DataBases', 'history.md')
-        if os.path.exists(history_file_path):
-            with open(history_file_path, 'w', encoding='utf-8') as file:
-                file.write('')
-        self.load_history()
-
     def delete_task(self):
         selected_item = self.tasks_list.currentItem()
         if selected_item:
@@ -390,6 +383,13 @@ class DailyPlannerApp(QMainWindow):
                     line = line.strip()  # Удалите лишние пробелы и символы новой строки
                     if line:  # Пропустите пустые строки
                         self.history_text.appendPlainText(line)
+                        
+    def clear_history(self):
+        history_file_path = os.path.join('DataBases', 'history.md')
+        if os.path.exists(history_file_path):
+            with open(history_file_path, 'w', encoding='utf-8') as file:
+                file.write('')
+        self.load_history()
 
     def add_execute(self):
         execute_name = self.execute_input.text().strip()
