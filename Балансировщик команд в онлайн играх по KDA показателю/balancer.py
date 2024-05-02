@@ -4,7 +4,7 @@ kda_avg = sum(kda)/len(kda)
 
 #Добавление бота если игроков нечетное количество
 if len(kda)%2 != 0:
-     kda.append(round(kda_avg))
+     kda.append(kda_avg)
 
 #Отсечение смурфов
 kda = sorted(kda)
