@@ -278,7 +278,6 @@ class TaskManager(QMainWindow):
         if not os.path.exists('db_tas'):
             os.makedirs('db_tas')
 
-<<<<<<< HEAD
     def delete_task(self):
         selected_item = self.tasks_list.currentItem()
         if selected_item:
@@ -297,7 +296,6 @@ class TaskManager(QMainWindow):
             for line in lines:
                 if task_text not in line:
                     file.write(line)
-=======
         # Проверяем наличие файла с задачами
         tasks_file_path = 'db_tas/tasks.csv'
         if not os.path.exists(tasks_file_path):
@@ -753,7 +751,7 @@ class TaskManager(QMainWindow):
 
         # Show the dialog window
         details_dialog.exec_()
->>>>>>> 8f148c897103ea5f7c8eb213de733fd0d0d73d0c
+
 
     def load_tasks(self):
         try:
@@ -781,7 +779,6 @@ class TaskManager(QMainWindow):
         self.tasks.append(task)
         self.save_tasks()
 
-<<<<<<< HEAD
                 for task in task_list:
                     # Добавляем день недели к дате
                     task_date = self.extract_due_date(task)
@@ -946,12 +943,12 @@ class TaskManager(QMainWindow):
         if index == 3:  # 4-я вкладка
             self.execute_table.setVisible(True)
             self.load_executes()
-=======
+
     def sort_by_priority(self):
         # Check if selected_executor is defined
         if hasattr(self, 'selected_executor') and self.selected_executor:
             filtered_tasks = [task for task in self.tasks if task.get('Исполнитель', '') == self.selected_executor]
->>>>>>> 8f148c897103ea5f7c8eb213de733fd0d0d73d0c
+
         else:
             filtered_tasks = self.tasks
 
