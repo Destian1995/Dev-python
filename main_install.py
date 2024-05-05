@@ -1,6 +1,9 @@
 import os
 import subprocess
-
+''' 
+Этот скрипт развертывает микросервисную архитектуру при условии что скопирован репозиторий. Вся необходимая информация здесь:
+https://github.com/Destian1995/diplom_netology
+'''
 def execute_command(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = process.communicate()
