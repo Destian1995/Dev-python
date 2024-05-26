@@ -1,5 +1,4 @@
-Давайте разберем код построчно:
-
+Разбор кода.
 ```python
 from docx import Document
 import pandas as pd
