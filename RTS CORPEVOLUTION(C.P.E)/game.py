@@ -117,9 +117,15 @@ class Base:
         self.y = y
         self.image = pygame.image.load(image_path)
         self.rect = self.image.get_rect(topleft=(x, y))
-        self.resources = {'сырье': 100, 'железная руда': 50, 'провизия': 500, 'людей': 10, 'деньги': 20}
+        self.iron = 0
+        self.surie = 0
+        self.provision = 0
+        self.people = 0
+        self.money = 0
+        self.resources = {'сырье': self.surie, 'железная руда': self.iron, 'провизия': self.provision, 'людей': self.people, 'деньги': self.money}
         self.player_controlled = player_controlled
         self.buildings = []
+
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -301,11 +307,8 @@ while status_game:
                 status_game = False
         elif game_state == 'game':
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if upgrade_button.is_clicked(pygame.mouse.get_pos()):  # Проверяем, была ли нажата кнопка "Улучшение"
-                    for building in base2.buildings:  # Проверяем, было ли нажато на здание
-                        if building.rect.collidepoint(event.pos):
-                            building.upgrade()  # Улучшаем здание
-                            break
+                if build_button.is_clicked(pygame.mouse.get_pos()):
+                    print("Клик по кнопке Стройка")
                 if upgrade_button.is_clicked(pygame.mouse.get_pos()):
                     print("Клик по кнопке Улучшения")
                 if unit_button.is_clicked(pygame.mouse.get_pos()):
