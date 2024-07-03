@@ -158,6 +158,7 @@ class Base:
         self.summ_upgrade_iron = self.production_rate * 7
         self.summ_upgrade_surie = self.production_rate * 4
         self.summ_upgrade_people = self.production_rate * 12
+        self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
 
     def draw_upgrade_window(self, screen):
         window_width = 600
@@ -171,14 +172,21 @@ class Base:
         screen.blit(title_text, (window_x + 60, window_y + 10))
 
         # Создание кнопок с использованием класса Button
-        self.upgrade_button_iron = Button(window_x + 50, window_y + 40, 300, 30, "Улучшить производство железа", lambda: self.upgrade('железная руда'))
-        self.upgrade_button_surie = Button(window_x + 50, window_y + 80, 300, 30, "Улучшить производство сырья", lambda: self.upgrade('сырье'))
-        self.upgrade_button_people = Button(window_x + 50, window_y + 120, 300, 30, "Улучшить торговые пути", lambda: self.upgrade('золото'))
+        self.upgrade_button_iron = Button(window_x + 50, window_y + 40, 300, 30, "Улучшить производство железа",
+                                          lambda: self.upgrade('железная руда'))
+        self.upgrade_button_surie = Button(window_x + 50, window_y + 80, 300, 30, "Улучшить производство сырья",
+                                           lambda: self.upgrade('сырье'))
+        self.upgrade_button_people = Button(window_x + 50, window_y + 120, 300, 30, "Улучшить торговые пути",
+                                            lambda: self.upgrade('золото'))
+
+        # Кнопка закрыть
+        self.close_button = Button(window_x + 470, window_y + 160, 90, 30, "Закрыть", self.close_upgrade_window)
 
         # Отрисовка кнопок
         self.upgrade_button_iron.draw(screen)
         self.upgrade_button_surie.draw(screen)
         self.upgrade_button_people.draw(screen)
+        self.close_button.draw(screen)
 
         # Отрисовка текста стоимости рядом с каждой кнопкой
         cost_text_iron = font.render(f"Стоимость: {self.summ_upgrade_iron} ед. золота", True, WHITE)
@@ -187,6 +195,10 @@ class Base:
         screen.blit(cost_text_surie, (window_x + 370, window_y + 90))
         cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} ед. золота", True, WHITE)
         screen.blit(cost_text_people, (window_x + 370, window_y + 130))
+
+    def close_upgrade_window(self):
+        print("Кнопка закрыть нажата")
+        self.show_upgrade_window = False
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -234,6 +246,8 @@ class Base:
                         self.upgrade(resource_types[i])
                         self.show_upgrade_window = False
                         break
+                if self.close_button.is_clicked(mouse_pos):
+                    self.close_upgrade_window()
 
     def produce_resources(self):
         # Прирост ресурсов
@@ -271,6 +285,7 @@ class Base:
                 self.production_rate += self.production_rate * 0.1
                 print('Нажал на кнопку улучшить содержание людей')
 
+
             # Обновление ресурсов после улучшения
             self.update_resources()
             info_panel.add_message(f"Улучшение {resource_type} выполнено! Новая скорость добычи: {self.production_rate}")
@@ -294,6 +309,11 @@ class Button:
 
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.is_clicked(event.pos):
+                self.action()
 
 class Applet:
     def __init__(self, x, y, width, height, base):
