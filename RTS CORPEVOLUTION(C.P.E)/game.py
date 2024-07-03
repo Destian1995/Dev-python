@@ -64,7 +64,8 @@ class InfoPanel:
             screen.blit(text_surf, (self.rect.x + 5, self.rect.y + 5 + i * 20))
 
 # Создание панели информации
-info_panel = InfoPanel(screen_width - 350, 720, 340, 120)
+info_panel = InfoPanel(screen_width - 620, 720, 610, 120)
+
 
 class Forest:
     def __init__(self, x, y, image_path):
@@ -146,31 +147,23 @@ class Base:
         self.provision = 0
         self.people = 0
         self.money = 200
-        self.resources = {'сырье': self.surie, 'железная руда': self.iron, 'провизия': self.provision,
-                          'люди': self.people, 'деньги': self.money}
+        self.resources = {'сырье': self.surie, 'железная руда': self.iron, 'золото': self.money}
         self.player_controlled = player_controlled
         self.buildings = []
-        self.upgrade_coefficients = {
-            'железная руда': 1.0,
-            'сырье': 1.0,
-            'провизия': 1.0,
-            'деньги': 1.0
-        }
         self.slowdown_factor = 0.01  # Коэффициент замедления
-
         self.resource_type = resource_type
         self.production_rate = production_rate
         self.upgrade_button_rect = pygame.Rect(self.x, self.y + self.image.get_height(), 100, 40)
         self.show_upgrade_window = False
-        self.summ_upgrade_iron = self.production_rate * 5
-        self.summ_upgrade_surie = self.production_rate * 3
-        self.summ_upgrade_people = self.production_rate * 1
+        self.summ_upgrade_iron = self.production_rate * 7
+        self.summ_upgrade_surie = self.production_rate * 4
+        self.summ_upgrade_people = self.production_rate * 12
 
     def draw_upgrade_window(self, screen):
         window_width = 600
         window_height = 200
-        window_x = (screen_width - window_width) // 2
-        window_y = (screen_height - window_height) // 2
+        window_x = (screen.get_width() - window_width) // 2
+        window_y = (screen.get_height() - window_height) // 2
         pygame.draw.rect(screen, GREY, (window_x, window_y, window_width, window_height))
         pygame.draw.rect(screen, BLACK, (window_x, window_y, window_width, window_height), 2)
 
@@ -178,9 +171,9 @@ class Base:
         screen.blit(title_text, (window_x + 60, window_y + 10))
 
         # Создание кнопок с использованием класса Button
-        self.upgrade_button_iron = Button(window_x + 50, window_y + 40, 300, 30, "Улучшить производство железа", self.upgrade)
-        self.upgrade_button_surie = Button(window_x + 50, window_y + 80, 300, 30, "Улучшить производство сырья", self.upgrade)
-        self.upgrade_button_people = Button(window_x + 50, window_y + 120, 300, 30, "Улучшить содержание людей", self.upgrade)
+        self.upgrade_button_iron = Button(window_x + 50, window_y + 40, 300, 30, "Улучшить производство железа", lambda: self.upgrade('железная руда'))
+        self.upgrade_button_surie = Button(window_x + 50, window_y + 80, 300, 30, "Улучшить производство сырья", lambda: self.upgrade('сырье'))
+        self.upgrade_button_people = Button(window_x + 50, window_y + 120, 300, 30, "Улучшить торговые пути", lambda: self.upgrade('золото'))
 
         # Отрисовка кнопок
         self.upgrade_button_iron.draw(screen)
@@ -188,11 +181,11 @@ class Base:
         self.upgrade_button_people.draw(screen)
 
         # Отрисовка текста стоимости рядом с каждой кнопкой
-        cost_text_iron = font.render(f"Стоимость: {self.summ_upgrade_iron} монет", True, WHITE)
+        cost_text_iron = font.render(f"Стоимость: {self.summ_upgrade_iron} ед. золота", True, WHITE)
         screen.blit(cost_text_iron, (window_x + 370, window_y + 50))
-        cost_text_surie = font.render(f"Стоимость: {self.summ_upgrade_surie} монет", True, WHITE)
+        cost_text_surie = font.render(f"Стоимость: {self.summ_upgrade_surie} ед. золота", True, WHITE)
         screen.blit(cost_text_surie, (window_x + 370, window_y + 90))
-        cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} монет", True, WHITE)
+        cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} ед. золота", True, WHITE)
         screen.blit(cost_text_people, (window_x + 370, window_y + 130))
 
     def draw(self, screen):
@@ -200,28 +193,17 @@ class Base:
         if self.show_upgrade_window:
             self.draw_upgrade_window(screen)
 
-    def produce_resources(self):
-        # Базовый прирост ресурсов
-        base_production = {
-            'сырье': 3,
-            'железная руда': 1.2,
-            'провизия': 2,
-            'деньги': 1.4
-        }
-        for resource, base_amount in base_production.items():
-            self.resources[resource] = round(self.resources[resource] + base_amount * self.upgrade_coefficients[resource] * self.slowdown_factor, 2)
 
     def update_resources(self):
         self.resources['сырье'] = self.surie
         self.resources['железная руда'] = self.iron
-        self.resources['провизия'] = self.provision
-        self.resources['люди'] = self.people
-        self.resources['деньги'] = self.money
+        self.resources['золото'] = self.money
+
 
     def deduct_money(self, amount):
-        if self.resources['деньги'] >= amount:
-            self.resources['деньги'] -= amount
-            self.update_resources()
+        if self.money >= amount:
+            self.money -= amount
+            self.update_resources()  # Обновление ресурсов здесь
             return True
         else:
             return False
@@ -246,35 +228,55 @@ class Base:
                     pygame.Rect(window_x + 50, window_y + 120, 300, 30),
                 ]
 
-                resource_types = ['железная руда', 'сырье', 'деньги']
+                resource_types = ['железная руда', 'сырье', 'золото']
                 for i, button_rect in enumerate(buttons):
                     if button_rect.collidepoint(mouse_pos):
                         self.upgrade(resource_types[i])
                         self.show_upgrade_window = False
                         break
 
+    def produce_resources(self):
+        # Прирост ресурсов
+        self.surie += 0.003 * self.production_rate
+        self.iron += 0.001 * self.production_rate
+        self.money += 0.002 * self.production_rate
+        self.update_resources()  # Обновление ресурсов здесь
+
+
     def upgrade(self, resource_type):
+        # Определение стоимости улучшений для каждого ресурса
         upgrade_costs = {
             'железная руда': self.summ_upgrade_iron,
             'сырье': self.summ_upgrade_surie,
-            'деньги': self.summ_upgrade_people
+            'золото': self.summ_upgrade_people
         }
 
+        # Получение стоимости улучшения для выбранного типа ресурса
         upgrade_cost = upgrade_costs.get(resource_type, 0)
 
-        if self.deduct_money(upgrade_cost):
-            self.upgrade_coefficients[resource_type] *= 1.1  # Увеличиваем коэффициент на 10%
+        # Проверка, достаточно ли денег для улучшения
+        if self.money >= upgrade_cost:
+            # Списание денег
+            self.money -= upgrade_cost
+
+
+            # Увеличение скорости производства на 10%
             if resource_type == 'железная руда':
-                self.iron *= 1.1
+                self.production_rate += self.production_rate * 0.1
+                print('Нажал на кнопку улучшить производство железа')
             elif resource_type == 'сырье':
-                self.surie *= 1.1
-            elif resource_type == 'деньги':
-                self.money *= 1.1
-            # Обновляем значения в словаре resources
+                self.production_rate += self.production_rate * 0.1
+                print('Нажал на кнопку улучшить производство сырья')
+            elif resource_type == 'золото':
+                self.production_rate += self.production_rate * 0.1
+                print('Нажал на кнопку улучшить содержание людей')
+
+            # Обновление ресурсов после улучшения
             self.update_resources()
-            info_panel.add_message(f"Улучшение {resource_type} выполнено!")
+            info_panel.add_message(f"Улучшение {resource_type} выполнено! Новая скорость добычи: {self.production_rate}")
         else:
-            info_panel.add_message("Недостаточно денег для улучшения!")
+            # Сообщение об ошибке при недостатке денег
+            info_panel.add_message("Недостаточно денег для улучшения!" f" {resource_type}: {self.money}")
 
 
 class Button:
@@ -292,7 +294,6 @@ class Button:
 
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
-
 
 class Applet:
     def __init__(self, x, y, width, height, base):
@@ -361,7 +362,6 @@ all_objects = [(base1.x, base1.y, base1.rect.width, base1.rect.height),
                (base2.x, base2.y, base2.rect.width, base2.rect.height)]
 resources = create_resources_around_base(base1, all_objects) + create_resources_around_base(base2, all_objects)
 map = Map(screen_width, screen_height - 200, all_objects)
-economic = Base(400, 350, base_image_path2, player_controlled=True, resource_type="железная руда", production_rate=15)
 # Апплет
 applet = Applet(0, screen_height - 200, screen_width, 150, base2)
 
@@ -397,7 +397,7 @@ while status_game:
                 # Обработка нажатия кнопок
                 if economic_button.is_clicked(pygame.mouse.get_pos()):
                     print("Экономика")
-                    economic.show_upgrade_window = True
+                    base2.show_upgrade_window = True
                 if progress_button.is_clicked(pygame.mouse.get_pos()):
                     print("Прогресс")
                 if army_button.is_clicked(pygame.mouse.get_pos()):
@@ -409,8 +409,8 @@ while status_game:
                 if exit_button.is_clicked(pygame.mouse.get_pos()):
                     game_state = 'menu'  # Возврат в главное меню при нажатии "пауза"
 
-                if economic.show_upgrade_window:
-                    economic.handle_event(event, screen_width, screen_height)
+                if base2.show_upgrade_window:
+                    base2.handle_event(event, screen_width, screen_height)
 
     # Обновление ресурсов базы игрока в игровом режиме
     if game_state == 'game':
@@ -438,8 +438,8 @@ while status_game:
         info_panel.draw(screen)
 
         # Отображение окна улучшения экономической базы, если оно активировано
-        if economic.show_upgrade_window:
-            economic.draw_upgrade_window(screen)
+        if base2.show_upgrade_window:
+            base2.draw_upgrade_window(screen)
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(90)  # Ограничение частоты кадров
