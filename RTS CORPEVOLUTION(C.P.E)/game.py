@@ -2,6 +2,7 @@ import pygame
 import os
 import random
 
+
 def check_files(directory, extensions):
     files = []
     for filename in os.listdir(directory):
@@ -45,6 +46,25 @@ PANEL = (100, 149, 237)
 font = pygame.font.Font(None, 24)
 menu_font = pygame.font.Font(None, 72)
 
+
+class InfoPanel:
+    def __init__(self, x, y, width, height):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.messages = []
+
+    def add_message(self, message):
+        self.messages.append(message)
+        if len(self.messages) > 5:  # Ограничиваем количество сообщений до 5
+            self.messages.pop(0)
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, BLACK, self.rect)
+        for i, message in enumerate(self.messages):
+            text_surf = font.render(message, True, WHITE)
+            screen.blit(text_surf, (self.rect.x + 5, self.rect.y + 5 + i * 20))
+
+# Создание панели информации
+info_panel = InfoPanel(screen_width - 350, 720, 340, 120)
 
 class Forest:
     def __init__(self, x, y, image_path):
@@ -209,9 +229,11 @@ class Base:
     def handle_event(self, event, screen_width, screen_height):
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
+            # Проверяем, была ли нажата кнопка "Экономика"
             if self.upgrade_button_rect.collidepoint(mouse_pos):
                 self.show_upgrade_window = True
 
+            # Если окно улучшений открыто, проверяем нажатие на кнопки улучшений
             if self.show_upgrade_window:
                 window_width = 600
                 window_height = 200
@@ -224,32 +246,35 @@ class Base:
                     pygame.Rect(window_x + 50, window_y + 120, 300, 30),
                 ]
 
+                resource_types = ['железная руда', 'сырье', 'деньги']
                 for i, button_rect in enumerate(buttons):
                     if button_rect.collidepoint(mouse_pos):
-                        resource_type = ['железная руда', 'сырье', 'деньги'][i]
-                        self.upgrade(resource_type)
+                        self.upgrade(resource_types[i])
                         self.show_upgrade_window = False
                         break
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.show_upgrade_window = False
-
     def upgrade(self, resource_type):
-        if resource_type == 'железная руда':
-            upgrade_cost = self.summ_upgrade_iron
-        elif resource_type == 'сырье':
-            upgrade_cost = self.summ_upgrade_surie
-        elif resource_type == 'деньги':
-            upgrade_cost = self.summ_upgrade_people
-        else:
-            upgrade_cost = 0
+        upgrade_costs = {
+            'железная руда': self.summ_upgrade_iron,
+            'сырье': self.summ_upgrade_surie,
+            'деньги': self.summ_upgrade_people
+        }
+
+        upgrade_cost = upgrade_costs.get(resource_type, 0)
 
         if self.deduct_money(upgrade_cost):
-            self.upgrade_coefficients[resource_type] *= 1.1  # Increase coefficient by 10%
-            print(f"Улучшение {resource_type} выполнено!")
+            self.upgrade_coefficients[resource_type] *= 1.1  # Увеличиваем коэффициент на 10%
+            if resource_type == 'железная руда':
+                self.iron *= 1.1
+            elif resource_type == 'сырье':
+                self.surie *= 1.1
+            elif resource_type == 'деньги':
+                self.money *= 1.1
+            # Обновляем значения в словаре resources
+            self.update_resources()
+            info_panel.add_message(f"Улучшение {resource_type} выполнено!")
         else:
-            print("Недостаточно денег для улучшения!")
+            info_panel.add_message("Недостаточно денег для улучшения!")
 
 
 class Button:
@@ -410,6 +435,7 @@ while status_game:
         exchange_button.draw(screen)
         diplomacy_button.draw(screen)
         exit_button.draw(screen)
+        info_panel.draw(screen)
 
         # Отображение окна улучшения экономической базы, если оно активировано
         if economic.show_upgrade_window:
