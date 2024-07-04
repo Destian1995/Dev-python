@@ -1,6 +1,7 @@
 import pygame
 
 images_path = r'C:\Users\User\Desktop\C.P.E\progress'
+images_path_lev1_sf = r'C:\Users\User\Desktop\C.P.E\progress\special_forces\1_level'
 
 class Button:
     def __init__(self, x, y, width, height, text, icon_path, action):
@@ -9,6 +10,7 @@ class Button:
         self.icon = pygame.image.load(icon_path)
         self.icon = pygame.transform.scale(self.icon, (width - 20, height - 20))
         self.action = action
+        self.enabled = True
 
     def draw(self, screen, font):
         pygame.draw.rect(screen, (222, 184, 135), self.rect)
@@ -17,8 +19,8 @@ class Button:
         icon_y = self.rect.y + 5
         screen.blit(self.icon, (icon_x, icon_y))
         text_surf = font.render(self.text, True, (0, 0, 0))
-        screen.blit(text_surf, (self.rect.x + (self.rect.width - text_surf.get_width()) // 2,
-                                self.rect.y + self.rect.height - text_surf.get_height() - 5))
+        text_rect = text_surf.get_rect(center=(self.rect.centerx, self.rect.bottom - text_surf.get_height() // 2))
+        screen.blit(text_surf, text_rect)
 
     def is_clicked(self, mouse_pos):
         return self.rect.collidepoint(mouse_pos)
@@ -28,47 +30,136 @@ class Button:
             if self.is_clicked(event.pos):
                 self.action()
 
+
 class ProgressTab:
     def __init__(self, screen_width, screen_height):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.font = pygame.font.Font(None, 24)
         self.label_text = "Выберите свою специализацию"
+        self.show_progress_window = True  # Initially showing progress window
 
-        # Позиционирование кнопок в меньшем окне прогресса
-        self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path+"/special_forces.png", self.special_forces_action)
-        self.armored_vehicles_button = Button(550, 350, 150, 160, "Бронетехника", images_path+"/armored_vehicles.png", self.armored_vehicles_action)
-        self.computing_systems_button = Button(750, 350, 150, 160, "Выч. системы", images_path+"/computing_systems.png", self.computing_systems_action)
+        # General buttons
+        self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path + "/special_forces.png",
+                                            self.special_forces_action)
+        self.armored_vehicles_button = Button(550, 350, 150, 160, "Бронетехника", images_path + "/armored_vehicles.png",
+                                              self.armored_vehicles_action)
+        self.computing_systems_button = Button(750, 350, 150, 160, "Выч. системы",
+                                               images_path + "/computing_systems.png", self.computing_systems_action)
         self.close_button = Button(890, 515, 50, 50, "", images_path + "/close.png", self.close_action)
 
         self.buttons = [self.special_forces_button, self.armored_vehicles_button, self.computing_systems_button,
                         self.close_button]
 
+        # Armored vehicle upgrade buttons
+        self.heavy_weapons_button = Button(350, 420, 60, 60, "Тяжелое оружие",
+                                           images_path_lev1_sf+"/big_weap.png", self.heavy_weapons_action)
+        self.heavy_armor_button = Button(350, 420, 60, 60, "Тяжелая амуниция",
+                                         images_path_lev1_sf+"/ammo.png", self.heavy_armor_action)
+        self.unique_alloys_button = Button(350, 420, 60, 60,
+                                           "Уникальные сплавы", images_path_lev1_sf+"/splav.png",
+                                           self.unique_alloys_action)
+        self.advanced_machines_button = Button(350, 420, 60, 60,
+                                               "Улучшенные станки", images_path_lev1_sf+"/stanki.png",
+                                               self.advanced_machines_action)
+        self.close_button = Button(890, 515, 50, 50, "", images_path + "/close.png", self.close_action)
+
+        self.armored_buttons = [self.heavy_weapons_button, self.heavy_armor_button, self.unique_alloys_button,
+                                self.advanced_machines_button, self.close_button]
+
+        self.armored_vehicles_open = False  # Flag to track if armored vehicles section is open
+
     def draw(self, screen):
-        # Заполняем экран серым цветом в заданных пределах
+        if not self.show_progress_window:
+            return
+
         pygame.draw.rect(screen, (192, 192, 192), (315, 320, 640, 250))
 
-        # Отображаем текстовую надпись
         text_surf = self.font.render(self.label_text, True, (0, 0, 0))
         screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
 
-        # Отображаем кнопки
-        for button in self.buttons:
-            button.draw(screen, self.font)
+        if self.armored_vehicles_open:
+            pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))  # Gray background for the buttons area
+            for idx, button in enumerate(self.armored_buttons):
+                button.rect.y = 350 + idx * 80  # Adjust vertical positioning based on index
+                button.draw(screen, self.font)
+        else:
+            for button in self.buttons:
+                button.draw(screen, self.font)
 
     def handle_event(self, event):
-        for button in self.buttons:
-            button.handle_event(event) 
+        if not self.show_progress_window:
+            return
+
+        if self.armored_vehicles_open:
+            for button in self.armored_buttons:
+                button.handle_event(event)
+        else:
+            for button in self.buttons:
+                button.handle_event(event)
 
     def special_forces_action(self):
         print("Спецназ кнопка нажата")
 
     def armored_vehicles_action(self):
-        print("Бронетехника кнопка нажата")
-
-    def computing_systems_action(self):
-        print("Вычислительные системы кнопка нажата")
+        if not self.armored_vehicles_open:
+            self.armored_vehicles_open = True
+            self.label_text = "Выберите улучшение для бронетехники"
+            print("Бронетехника кнопка нажата")
+        else:
+            self.armored_vehicles_open = False
+            self.label_text = "Выберите свою специализацию"
+            print("Закрыть Бронетехника")
 
     def close_action(self):
         self.show_progress_window = False
         print('Кнопка закрыть отжата')
+
+    def heavy_weapons_action(self):
+        pass
+        if self.check_resources(1000, 2500, 2500):
+            print("Тяжелое оружие для пехоты улучшено")
+            self.heavy_weapons_button.enabled = False
+        else:
+            print("Не хватает ресурсов")
+
+    def heavy_armor_action(self):
+        pass
+        if self.check_resources(1500, 3000, 3000):
+            print("Тяжелая амуниция улучшена")
+            self.heavy_armor_button.enabled = False
+        else:
+            print("Не хватает ресурсов")
+
+    def unique_alloys_action(self):
+        pass
+        if self.check_resources(1300, 4500, 4000):
+            print("Уникальные сплавы улучшены")
+            self.unique_alloys_button.enabled = False
+        else:
+            print("Не хватает ресурсов")
+
+    def advanced_machines_action(self):
+        pass
+        if self.check_resources(2200, 3000, 5000):
+            print("Улучшенные станки установлены")
+            self.advanced_machines_button.enabled = False
+        else:
+            print("Не хватает ресурсов")
+
+    def check_resources(self, raw, iron, gold):
+        pass
+        player_resources = {"raw": 5000, "iron": 10000, "gold": 8000}
+        if player_resources["raw"] >= raw and player_resources["iron"] >= iron and player_resources["gold"] >= gold:
+            player_resources["raw"] -= raw
+            player_resources["iron"] -= iron
+            player_resources["gold"] -= gold
+            return True
+        return False
+
+    def computing_systems_action(self):
+        print("Вычислительные системы кнопка нажата")
+
+    def open(self):
+        self.show_progress_window = True
+        print('Окно прогресса открыто')
