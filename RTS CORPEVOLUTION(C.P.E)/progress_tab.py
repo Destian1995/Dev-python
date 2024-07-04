@@ -3,6 +3,7 @@ import pygame
 images_path = r'C:\Users\User\Desktop\C.P.E\progress'
 images_path_lev1_sf = r'C:\Users\User\Desktop\C.P.E\progress\special_forces\1_level'
 
+
 class Button:
     def __init__(self, x, y, width, height, text, icon_path, action):
         self.rect = pygame.Rect(x, y, width, height)
@@ -53,21 +54,22 @@ class ProgressTab:
 
         # Armored vehicle upgrade buttons
         self.heavy_weapons_button = Button(350, 420, 60, 60, "Тяжелое оружие",
-                                           images_path_lev1_sf+"/big_weap.png", self.heavy_weapons_action)
+                                           images_path_lev1_sf + "/big_weap.png", self.heavy_weapons_action)
         self.heavy_armor_button = Button(350, 420, 60, 60, "Тяжелая амуниция",
-                                         images_path_lev1_sf+"/ammo.png", self.heavy_armor_action)
+                                         images_path_lev1_sf + "/ammo.png", self.heavy_armor_action)
         self.unique_alloys_button = Button(350, 420, 60, 60,
-                                           "Уникальные сплавы", images_path_lev1_sf+"/splav.png",
+                                           "Уникальные сплавы", images_path_lev1_sf + "/splav.png",
                                            self.unique_alloys_action)
         self.advanced_machines_button = Button(350, 420, 60, 60,
-                                               "Улучшенные станки", images_path_lev1_sf+"/stanki.png",
+                                               "Улучшенные станки", images_path_lev1_sf + "/stanki.png",
                                                self.advanced_machines_action)
         self.close_button = Button(890, 515, 50, 50, "", images_path + "/close.png", self.close_action)
 
         self.armored_buttons = [self.heavy_weapons_button, self.heavy_armor_button, self.unique_alloys_button,
                                 self.advanced_machines_button, self.close_button]
 
-        self.armored_vehicles_open = False  # Flag to track if armored vehicles section is open
+        self.armored_vehicles_open = False
+        self.heavy_weapons_action = False
 
     def draw(self, screen):
         if not self.show_progress_window:
@@ -80,6 +82,8 @@ class ProgressTab:
 
         if self.armored_vehicles_open:
             pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))  # Gray background for the buttons area
+            text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+            screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
             for idx, button in enumerate(self.armored_buttons):
                 button.rect.y = 350 + idx * 80  # Adjust vertical positioning based on index
                 button.draw(screen, self.font)
@@ -104,15 +108,20 @@ class ProgressTab:
     def armored_vehicles_action(self):
         if not self.armored_vehicles_open:
             self.armored_vehicles_open = True
-            self.label_text = "Выберите улучшение для бронетехники"
+            self.label_text = 'Выберите улучшение для специализации "Бронетехника"'
             print("Бронетехника кнопка нажата")
         else:
             self.armored_vehicles_open = False
-            self.label_text = "Выберите свою специализацию"
             print("Закрыть Бронетехника")
 
     def close_action(self):
-        self.show_progress_window = False
+        if self.heavy_weapons_button.enabled == False or self.heavy_armor_button.enabled == False or self.unique_alloys_button.enabled == False or self.advanced_machines_button.enabled == False:
+            self.show_progress_window = False
+            print("Специализация бронетехника выбрана")
+        else:
+            self.armored_vehicles_open = False
+            self.show_progress_window = False
+            self.label_text = "Выберите свою специализацию"
         print('Кнопка закрыть отжата')
 
     def heavy_weapons_action(self):
