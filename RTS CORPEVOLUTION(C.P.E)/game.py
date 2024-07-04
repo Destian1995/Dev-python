@@ -1,8 +1,9 @@
-import pygame
 import os
 import random
+from progress_tab import *
+import sys
 
-
+sys.path.append(os.path.dirname(__file__))
 def check_files(directory, extensions):
     files = []
     for filename in os.listdir(directory):
@@ -13,8 +14,8 @@ def check_files(directory, extensions):
                 files.append(filepath)
     return files
 
-# Путь к спрайтам
-directory_path = r"C:\Users\User\Desktop\C.P.E\sprites"
+# Путь к файлам
+directory_path = r"C:\Users\User\Desktop\C.P.E"
 extensions_to_check = ['png', 'jpg']
 found_files = check_files(directory_path, extensions_to_check)
 print("Найденные файлы:", found_files)
@@ -155,10 +156,12 @@ class Base:
         self.production_rate = production_rate
         self.upgrade_button_rect = pygame.Rect(self.x, self.y + self.image.get_height(), 100, 40)
         self.show_upgrade_window = False
+        self.show_progress_window = False
         self.summ_upgrade_iron = self.production_rate * 7
         self.summ_upgrade_surie = self.production_rate * 4
         self.summ_upgrade_people = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
+        self.progress_tab = ProgressTab(screen_width, screen_height)
 
     def draw_upgrade_window(self, screen):
         window_width = 600
@@ -196,14 +199,18 @@ class Base:
         cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} ед. золота", True, WHITE)
         screen.blit(cost_text_people, (window_x + 370, window_y + 130))
 
+    def draw_progress_window(self, screen):
+        self.progress_tab.draw(screen)
+
     def close_upgrade_window(self):
-        print("Кнопка закрыть нажата")
         self.show_upgrade_window = False
 
     def draw(self, screen):
         screen.blit(self.image, (self.x, self.y))
         if self.show_upgrade_window:
             self.draw_upgrade_window(screen)
+        if self.show_progress_window:
+            self.draw_progress_window(screen)
 
 
     def update_resources(self):
@@ -393,6 +400,9 @@ exchange_button = Button(360, screen_height - 40, 110, 30, "Рынок", None)
 diplomacy_button = Button(480, screen_height - 40, 110, 30, "Дипломатия", None)
 exit_button = Button(1000, screen_height - 40, 170, 30, "Пауза", None)
 
+# Модуль прогресс
+progress_tab = ProgressTab(screen_width, screen_height)
+
 # Главное меню
 main_menu = MainMenu()
 
@@ -416,9 +426,9 @@ while status_game:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Обработка нажатия кнопок
                 if economic_button.is_clicked(pygame.mouse.get_pos()):
-                    print("Экономика")
                     base2.show_upgrade_window = True
                 if progress_button.is_clicked(pygame.mouse.get_pos()):
+                    base2.show_progress_window = True
                     print("Прогресс")
                 if army_button.is_clicked(pygame.mouse.get_pos()):
                     print("Армия")
@@ -432,6 +442,9 @@ while status_game:
                 if base2.show_upgrade_window:
                     base2.handle_event(event, screen_width, screen_height)
 
+                if base2.show_progress_window:
+                    base2.progress_tab.handle_event(event)
+
     # Обновление ресурсов базы игрока в игровом режиме
     if game_state == 'game':
         base2.produce_resources()
@@ -440,7 +453,7 @@ while status_game:
     if game_state == 'menu':
         main_menu.draw(screen)  # Отображение главного меню
     elif game_state == 'game':
-        screen.fill(BLACK)  # Заливка экрана черным цветом
+        screen.fill((0, 0, 0))  # Заливка экрана черным цветом
         map.draw(screen)  # Отрисовка карты
         base1.draw(screen)  # Отрисовка базы противника
         base2.draw(screen)  # Отрисовка базы игрока
@@ -460,6 +473,12 @@ while status_game:
         # Отображение окна улучшения экономической базы, если оно активировано
         if base2.show_upgrade_window:
             base2.draw_upgrade_window(screen)
+
+        # Отрисовка окна прогресса, если оно активно
+        if base2.show_progress_window:
+            base2.progress_tab.draw(screen)
+
+
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(90)  # Ограничение частоты кадров
