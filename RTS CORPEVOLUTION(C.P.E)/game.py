@@ -1,6 +1,6 @@
 import os
 import random
-from progress_tab import *
+from army import *
 import sys
 
 sys.path.append(os.path.dirname(__file__))
@@ -26,7 +26,7 @@ base_image_path2 = r"C:\Users\User\Desktop\C.P.E\base\base2.png"  # Изобра
 industry_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\industry.png"  # Изображение для industry
 surie_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\surie.png"  # Изображение для surie
 forest_image_path = r"C:\Users\User\Desktop\C.P.E\alls\forest.png"  # Изображение для леса
-
+units_on_map = []
 # Инициализация Pygame
 pygame.init()
 
@@ -98,7 +98,7 @@ class Map:
         all_objects = self.base_positions
 
         # Генерация зданий
-        num_buildings = random.randint(4, 7)
+        num_buildings = random.randint(4, 12)
         for _ in range(num_buildings):
             while True:
                 x = random.randint(0, self.width - 100)
@@ -109,7 +109,7 @@ class Map:
                     break
 
         # Генерация лесов
-        num_forests = random.randint(12, 19)
+        num_forests = random.randint(12, 22)
         for _ in range(num_forests):
             while True:
                 x = random.randint(0, self.width - 50)
@@ -137,6 +137,14 @@ class Map:
                 pygame.draw.rect(screen, WHITE, (col, row, window_size, window_size))
 
 
+def place_unit(unit_type, icon_path, x, y):
+    print(f"Placing unit {unit_type} on the map")
+    unit_icon = pygame.image.load(icon_path)
+    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # Scale to appropriate size
+    units_on_map.append({"type": unit_type, "icon": unit_icon, "position": (x, y)})
+
+
+
 class Base:
     def __init__(self, x, y, image_path, player_controlled=True, resource_type=None, production_rate=15):
         self.x = x
@@ -157,11 +165,13 @@ class Base:
         self.upgrade_button_rect = pygame.Rect(self.x, self.y + self.image.get_height(), 100, 40)
         self.show_upgrade_window = False
         self.show_progress_window = False
+        self.show_army_tab_window = False
         self.summ_upgrade_iron = self.production_rate * 7
         self.summ_upgrade_surie = self.production_rate * 4
         self.summ_upgrade_people = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
         self.progress_tab = ProgressTab(screen_width, screen_height)
+        self.army_tab = ArmyTab(screen_width, screen_height, place_unit)
 
     def draw_upgrade_window(self, screen):
         window_width = 600
@@ -202,6 +212,9 @@ class Base:
     def draw_progress_window(self, screen):
         self.progress_tab.draw(screen)
 
+    def draw_army_tab_window(self, screen):
+        self.army_tab.draw(screen)
+
     def close_upgrade_window(self):
         self.show_upgrade_window = False
 
@@ -211,6 +224,8 @@ class Base:
             self.draw_upgrade_window(screen)
         if self.show_progress_window:
             self.draw_progress_window(screen)
+        if self.show_army_tab_window:
+            self.draw_army_tab_window(screen)
 
 
     def update_resources(self):
@@ -322,6 +337,7 @@ class Button:
             if self.is_clicked(event.pos):
                 self.action()
 
+
 class Applet:
     def __init__(self, x, y, width, height, base):
         self.rect = pygame.Rect(x, y, width, height)
@@ -380,6 +396,7 @@ def create_resources_around_base(base, all_objects):
                 break
     return resources
 
+
 # Основной игровой цикл
 status_game = True
 game_state = 'menu'
@@ -399,9 +416,6 @@ army_button = Button(240, screen_height - 40, 110, 30, "Армия", None)
 exchange_button = Button(360, screen_height - 40, 110, 30, "Рынок", None)
 diplomacy_button = Button(480, screen_height - 40, 110, 30, "Дипломатия", None)
 exit_button = Button(1000, screen_height - 40, 170, 30, "Пауза", None)
-
-# Модуль прогресс
-progress_tab = ProgressTab(screen_width, screen_height)
 
 # Главное меню
 main_menu = MainMenu()
@@ -429,8 +443,11 @@ while status_game:
                     base2.show_upgrade_window = True
                 if progress_button.is_clicked(pygame.mouse.get_pos()):
                     base2.show_progress_window = True
+                    base2.progress_tab.open()
                     print("Прогресс")
                 if army_button.is_clicked(pygame.mouse.get_pos()):
+                    base2.show_army_tab_window = True
+                    base2.army_tab.open()
                     print("Армия")
                 if exchange_button.is_clicked(pygame.mouse.get_pos()):
                     print("Рынок")
@@ -444,6 +461,12 @@ while status_game:
 
                 if base2.show_progress_window:
                     base2.progress_tab.handle_event(event)
+
+                if base2.show_army_tab_window:
+                    base2.army_tab.handle_event(event)
+
+    for unit in units_on_map:
+        screen.blit(unit["icon"], unit["position"])
 
     # Обновление ресурсов базы игрока в игровом режиме
     if game_state == 'game':
@@ -478,6 +501,9 @@ while status_game:
         if base2.show_progress_window:
             base2.progress_tab.draw(screen)
 
+        # Отрисовка окна армии, если оно активно
+        if base2.show_army_tab_window:
+            base2.army_tab.draw(screen)
 
 
     pygame.display.flip()  # Обновление экрана
