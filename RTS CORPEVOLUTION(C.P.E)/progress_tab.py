@@ -1,5 +1,6 @@
 import pygame
 
+
 images_path = r'C:\Users\User\Desktop\C.P.E\progress'
 images_path_lev1_sf = r'C:\Users\User\Desktop\C.P.E\progress\special_forces\1_level'
 
@@ -33,12 +34,13 @@ class Button:
 
 
 class ProgressTab:
-    def __init__(self, screen_width, screen_height):
+    def __init__(self, screen_width, screen_height, base):
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.base = base
         self.font = pygame.font.Font(None, 24)
         self.label_text = "Выберите свою специализацию"
-        self.show_progress_window = True  # Initially showing progress window
+        self.show_progress_window = True
 
         # General buttons
         self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path + "/special_forces.png",
@@ -69,7 +71,7 @@ class ProgressTab:
                                 self.advanced_machines_button, self.close_button]
 
         self.armored_vehicles_open = False
-        self.heavy_weapons_action = False
+
 
     def draw(self, screen):
         if not self.show_progress_window:
@@ -90,6 +92,7 @@ class ProgressTab:
         else:
             for button in self.buttons:
                 button.draw(screen, self.font)
+
 
     def handle_event(self, event):
         if not self.show_progress_window:
@@ -125,50 +128,41 @@ class ProgressTab:
         print('Кнопка закрыть отжата')
 
     def heavy_weapons_action(self):
-        pass
-        if self.check_resources(1000, 2500, 2500):
+        # (surie, iron, money)
+        if self.base.cashe(90, 20, 150):
+            self.base.update_resources()
             print("Тяжелое оружие для пехоты улучшено")
             self.heavy_weapons_button.enabled = False
         else:
             print("Не хватает ресурсов")
 
     def heavy_armor_action(self):
-        pass
-        if self.check_resources(1500, 3000, 3000):
+        if self.base.cashe(1500, 3000, 3000):
+            self.base.update_resources()
             print("Тяжелая амуниция улучшена")
             self.heavy_armor_button.enabled = False
         else:
             print("Не хватает ресурсов")
 
     def unique_alloys_action(self):
-        pass
-        if self.check_resources(1300, 4500, 4000):
+        if self.base.cashe(1300, 4500, 4000):
+            self.base.update_resources()
             print("Уникальные сплавы улучшены")
             self.unique_alloys_button.enabled = False
         else:
             print("Не хватает ресурсов")
 
     def advanced_machines_action(self):
-        pass
-        if self.check_resources(2200, 3000, 5000):
+        if self.base.cashe(2200, 3000, 5000):
+            self.base.update_resources()
             print("Улучшенные станки установлены")
             self.advanced_machines_button.enabled = False
         else:
             print("Не хватает ресурсов")
 
-    def check_resources(self, raw, iron, gold):
-        pass
-        player_resources = {"raw": 5000, "iron": 10000, "gold": 8000}
-        if player_resources["raw"] >= raw and player_resources["iron"] >= iron and player_resources["gold"] >= gold:
-            player_resources["raw"] -= raw
-            player_resources["iron"] -= iron
-            player_resources["gold"] -= gold
-            return True
-        return False
-
     def computing_systems_action(self):
-        print("Вычислительные системы кнопка нажата")
+        pass
 
     def open(self):
         self.show_progress_window = True
-        print('Окно прогресса открыто')
+
