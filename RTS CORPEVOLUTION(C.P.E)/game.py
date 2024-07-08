@@ -146,15 +146,13 @@ def place_unit(unit_type, icon_path, x, y):
 
 
 class Base:
-    def __init__(self, x, y, image_path, player_controlled=True, resource_type=None, production_rate=15):
+    def __init__(self, x, y, image_path, player_controlled=False, resource_type=None, production_rate=15):
         self.x = x
         self.y = y
         self.image = pygame.image.load(image_path)
         self.rect = self.image.get_rect(topleft=(x, y))
         self.iron = 0
         self.surie = 0
-        self.provision = 0
-        self.people = 0
         self.money = 200
         self.resources = {'сырье': self.surie, 'железная руда': self.iron, 'золото': self.money}
         self.player_controlled = player_controlled
@@ -170,7 +168,6 @@ class Base:
         self.summ_upgrade_surie = self.production_rate * 4
         self.summ_upgrade_people = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
-        self.progress_tab = ProgressTab(screen_width, screen_height)
         self.army_tab = ArmyTab(screen_width, screen_height, place_unit)
 
     def draw_upgrade_window(self, screen):
@@ -209,8 +206,21 @@ class Base:
         cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} ед. золота", True, WHITE)
         screen.blit(cost_text_people, (window_x + 370, window_y + 130))
 
+    def cashe(self, surie, iron, money):
+        if self.iron >= iron and self.surie >= surie and self.money >= money:
+            self.iron -= iron
+            self.surie -= surie
+            self.money -= money
+            return True
+        return False
+
+    def update_resources(self):
+        self.resources['сырье'] = self.surie
+        self.resources['железная руда'] = self.iron
+        self.resources['золото'] = self.money
+
     def draw_progress_window(self, screen):
-        self.progress_tab.draw(screen)
+        progress_tab.draw(screen)
 
     def draw_army_tab_window(self, screen):
         self.army_tab.draw(screen)
@@ -226,12 +236,6 @@ class Base:
             self.draw_progress_window(screen)
         if self.show_army_tab_window:
             self.draw_army_tab_window(screen)
-
-
-    def update_resources(self):
-        self.resources['сырье'] = self.surie
-        self.resources['железная руда'] = self.iron
-        self.resources['золото'] = self.money
 
 
     def deduct_money(self, amount):
@@ -396,12 +400,13 @@ def create_resources_around_base(base, all_objects):
                 break
     return resources
 
-
 # Основной игровой цикл
 status_game = True
 game_state = 'menu'
 base1 = Base(50, 50, base_image_path1, player_controlled=False)  # Противник
 base2 = Base(900, 500, base_image_path2, player_controlled=True)  # Игрок
+progress_tab = ProgressTab(screen_width, screen_height, base2)
+
 all_objects = [(base1.x, base1.y, base1.rect.width, base1.rect.height),
                (base2.x, base2.y, base2.rect.width, base2.rect.height)]
 resources = create_resources_around_base(base1, all_objects) + create_resources_around_base(base2, all_objects)
@@ -443,7 +448,7 @@ while status_game:
                     base2.show_upgrade_window = True
                 if progress_button.is_clicked(pygame.mouse.get_pos()):
                     base2.show_progress_window = True
-                    base2.progress_tab.open()
+                    progress_tab.open()
                     print("Прогресс")
                 if army_button.is_clicked(pygame.mouse.get_pos()):
                     base2.show_army_tab_window = True
@@ -460,7 +465,7 @@ while status_game:
                     base2.handle_event(event, screen_width, screen_height)
 
                 if base2.show_progress_window:
-                    base2.progress_tab.handle_event(event)
+                    progress_tab.handle_event(event)
 
                 if base2.show_army_tab_window:
                     base2.army_tab.handle_event(event)
@@ -499,7 +504,7 @@ while status_game:
 
         # Отрисовка окна прогресса, если оно активно
         if base2.show_progress_window:
-            base2.progress_tab.draw(screen)
+            progress_tab.draw(screen)
 
         # Отрисовка окна армии, если оно активно
         if base2.show_army_tab_window:
