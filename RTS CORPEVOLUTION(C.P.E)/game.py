@@ -129,6 +129,10 @@ class Map:
         for forest in self.forests:
             forest.draw(screen)
 
+            # Отрисовка юнитов
+        for unit in units_on_map:
+            screen.blit(unit["изображение"], unit["позиция"])
+
     def draw_building_windows(self, screen, x, y, width, height):
         window_size = 10
         window_spacing = 5
@@ -136,14 +140,11 @@ class Map:
             for col in range(x + window_spacing, x + width - window_size, window_size + window_spacing):
                 pygame.draw.rect(screen, WHITE, (col, row, window_size, window_size))
 
-
 def place_unit(unit_type, icon_path, x, y):
-    print(f"Placing unit {unit_type} on the map")
+    print(f"Добавление единицы {unit_type} на карту")
     unit_icon = pygame.image.load(icon_path)
-    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # Scale to appropriate size
-    units_on_map.append({"type": unit_type, "icon": unit_icon, "position": (x, y)})
-
-
+    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # размер
+    units_on_map.append({"тип юнита": unit_type, "изображение": unit_icon, "позиция": (x, y)})
 
 class Base:
     def __init__(self, x, y, image_path, player_controlled=False, resource_type=None, production_rate=15):
@@ -169,6 +170,7 @@ class Base:
         self.summ_upgrade_people = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
         self.army_tab = ArmyTab(screen_width, screen_height, place_unit)
+
 
     def draw_upgrade_window(self, screen):
         window_width = 600
@@ -400,12 +402,14 @@ def create_resources_around_base(base, all_objects):
                 break
     return resources
 
+
 # Основной игровой цикл
 status_game = True
 game_state = 'menu'
 base1 = Base(50, 50, base_image_path1, player_controlled=False)  # Противник
 base2 = Base(900, 500, base_image_path2, player_controlled=True)  # Игрок
 progress_tab = ProgressTab(screen_width, screen_height, base2)
+info = ProgressTab(screen_width, screen_height, info_panel)
 
 all_objects = [(base1.x, base1.y, base1.rect.width, base1.rect.height),
                (base2.x, base2.y, base2.rect.width, base2.rect.height)]
@@ -425,6 +429,8 @@ exit_button = Button(1000, screen_height - 40, 170, 30, "Пауза", None)
 # Главное меню
 main_menu = MainMenu()
 
+selected_unit = None
+
 # Основной игровой цикл
 clock = pygame.time.Clock()
 
@@ -433,6 +439,8 @@ while status_game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             status_game = False  # Выход из игры при закрытии окна
+
+        base2.army_tab.handle_event(event)
 
         if game_state == 'menu':
             result = main_menu.handle_event(event)  # Обработка событий главного меню
@@ -444,34 +452,54 @@ while status_game:
         elif game_state == 'game':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Обработка нажатия кнопок
-                if economic_button.is_clicked(pygame.mouse.get_pos()):
-                    base2.show_upgrade_window = True
-                if progress_button.is_clicked(pygame.mouse.get_pos()):
-                    base2.show_progress_window = True
-                    progress_tab.open()
-                    print("Прогресс")
-                if army_button.is_clicked(pygame.mouse.get_pos()):
-                    base2.show_army_tab_window = True
-                    base2.army_tab.open()
-                    print("Армия")
-                if exchange_button.is_clicked(pygame.mouse.get_pos()):
-                    print("Рынок")
-                if diplomacy_button.is_clicked(pygame.mouse.get_pos()):
-                    print("Дипломатия")
-                if exit_button.is_clicked(pygame.mouse.get_pos()):
-                    game_state = 'menu'  # Возврат в главное меню при нажатии "пауза"
+                if event.button == 1:
+                    # Левая кнопка мыши
+                    if economic_button.is_clicked(pygame.mouse.get_pos()):
+                        base2.show_upgrade_window = True
+                    if progress_button.is_clicked(pygame.mouse.get_pos()):
+                        base2.show_progress_window = True
+                        progress_tab.open()
+                        print("Прогресс")
+                    if army_button.is_clicked(pygame.mouse.get_pos()):
+                        base2.show_army_tab_window = True
+                        base2.army_tab.open()
+                        print("Армия")
+                    if exchange_button.is_clicked(pygame.mouse.get_pos()):
+                        print("Рынок")
+                    if diplomacy_button.is_clicked(pygame.mouse.get_pos()):
+                        print("Дипломатия")
+                    if exit_button.is_clicked(pygame.mouse.get_pos()):
+                        game_state = 'menu'  # Возврат в главное меню при нажатии "пауза"
 
-                if base2.show_upgrade_window:
-                    base2.handle_event(event, screen_width, screen_height)
+                    if base2.show_upgrade_window:
+                        base2.handle_event(event, screen_width, screen_height)
 
-                if base2.show_progress_window:
-                    progress_tab.handle_event(event)
+                    if base2.show_progress_window:
+                        progress_tab.handle_event(event)
 
-                if base2.show_army_tab_window:
-                    base2.army_tab.handle_event(event)
+                    if base2.show_army_tab_window:
+                        base2.army_tab.handle_event(event)
 
-    for unit in units_on_map:
-        screen.blit(unit["icon"], unit["position"])
+                    clicked_empty_space = True
+                    for unit in units_on_map:
+                        icon_width = unit["изображение"].get_width()
+                        icon_height = unit["изображение"].get_height()
+                        unit_rect = pygame.Rect(unit["позиция"][0], unit["позиция"][1], icon_width, icon_height)
+                        if unit_rect.collidepoint(event.pos):
+                            selected_unit = unit
+                            clicked_empty_space = False
+                            break  # Прерывание цикла после выбора юнита
+
+                    # Если щелчок был по пустому месту, сбросить выбранный юнит
+                    if clicked_empty_space and selected_unit:
+                        selected_unit = None
+
+                elif event.button == 3:  # Правая кнопка мыши
+                    if selected_unit:
+                        # Перемещение юнита к позиции курсора мыши
+                        selected_unit["позиция"] = event.pos
+
+
 
     # Обновление ресурсов базы игрока в игровом режиме
     if game_state == 'game':
@@ -510,6 +538,15 @@ while status_game:
         if base2.show_army_tab_window:
             base2.army_tab.draw(screen)
 
+        for unit in units_on_map:
+            screen.blit(unit["изображение"], unit["позиция"])
+            # Отрисовка рамки вокруг выбранного юнита
+            if unit == selected_unit:
+                pygame.draw.rect(screen, (255, 0, 0), (
+                unit["позиция"][0], unit["позиция"][1], unit["изображение"].get_width(), unit["изображение"].get_height()), 2)
+
+        # Отрисовка юнитов
+        base2.army_tab.draw_units(screen)
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(90)  # Ограничение частоты кадров
