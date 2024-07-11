@@ -2,6 +2,8 @@ import os
 import random
 from army import *
 import sys
+import pygame
+
 
 sys.path.append(os.path.dirname(__file__))
 def check_files(directory, extensions):
@@ -27,8 +29,6 @@ industry_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\industry.png"
 surie_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\surie.png"  # Изображение для surie
 forest_image_path = r"C:\Users\User\Desktop\C.P.E\alls\forest.png"  # Изображение для леса
 units_on_map = []
-# Инициализация Pygame
-pygame.init()
 
 # Настройка окна
 screen_width = 1200
@@ -43,10 +43,11 @@ GREY = (128, 128, 128)
 BEIGE = (222, 184, 135)
 PANEL = (100, 149, 237)
 
+# Инициализация Pygame
+pygame.init()
 # Шрифты
 font = pygame.font.Font(None, 24)
 menu_font = pygame.font.Font(None, 72)
-
 
 class InfoPanel:
     def __init__(self, x, y, width, height):
@@ -128,10 +129,6 @@ class Map:
 
         for forest in self.forests:
             forest.draw(screen)
-
-            # Отрисовка юнитов
-        for unit in units_on_map:
-            screen.blit(unit["изображение"], unit["позиция"])
 
     def draw_building_windows(self, screen, x, y, width, height):
         window_size = 10
@@ -543,10 +540,7 @@ while status_game:
             # Отрисовка рамки вокруг выбранного юнита
             if unit == selected_unit:
                 pygame.draw.rect(screen, (255, 0, 0), (
-                unit["позиция"][0], unit["позиция"][1], unit["изображение"].get_width(), unit["изображение"].get_height()), 2)
-
-        # Отрисовка юнитов
-        base2.army_tab.draw_units(screen)
+                unit["позиция"][0], unit["позиция"][1], unit["изображение"].get_width(), unit["изображение"].get_height()), 2)       
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(90)  # Ограничение частоты кадров
