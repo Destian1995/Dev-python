@@ -164,7 +164,7 @@ class Base:
         self.show_army_tab_window = False
         self.summ_upgrade_iron = self.production_rate * 7
         self.summ_upgrade_surie = self.production_rate * 4
-        self.summ_upgrade_people = self.production_rate * 12
+        self.summ_upgrade_money = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
         self.army_tab = ArmyTab(screen_width, screen_height, place_unit)
 
@@ -202,7 +202,7 @@ class Base:
         screen.blit(cost_text_iron, (window_x + 370, window_y + 50))
         cost_text_surie = font.render(f"Стоимость: {self.summ_upgrade_surie} ед. золота", True, WHITE)
         screen.blit(cost_text_surie, (window_x + 370, window_y + 90))
-        cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_people} ед. золота", True, WHITE)
+        cost_text_people = font.render(f"Стоимость: {self.summ_upgrade_money} ед. золота", True, WHITE)
         screen.blit(cost_text_people, (window_x + 370, window_y + 130))
 
     def cashe(self, surie, iron, money):
@@ -287,7 +287,7 @@ class Base:
         upgrade_costs = {
             'железная руда': self.summ_upgrade_iron,
             'сырье': self.summ_upgrade_surie,
-            'золото': self.summ_upgrade_people
+            'золото': self.summ_upgrade_money
         }
 
         # Получение стоимости улучшения для выбранного типа ресурса
@@ -400,14 +400,17 @@ def create_resources_around_base(base, all_objects):
     return resources
 
 
-# Основной игровой цикл
+
 status_game = True
 game_state = 'menu'
+
+# Создание экзмепляров для создания баз
 base1 = Base(50, 50, base_image_path1, player_controlled=False)  # Противник
 base2 = Base(900, 500, base_image_path2, player_controlled=True)  # Игрок
 progress_tab = ProgressTab(screen_width, screen_height, base2)
 info = ProgressTab(screen_width, screen_height, info_panel)
 
+# Передача координат для генерации объектов
 all_objects = [(base1.x, base1.y, base1.rect.width, base1.rect.height),
                (base2.x, base2.y, base2.rect.width, base2.rect.height)]
 resources = create_resources_around_base(base1, all_objects) + create_resources_around_base(base2, all_objects)
@@ -436,8 +439,6 @@ while status_game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             status_game = False  # Выход из игры при закрытии окна
-
-        base2.army_tab.handle_event(event)
 
         if game_state == 'menu':
             result = main_menu.handle_event(event)  # Обработка событий главного меню
@@ -479,9 +480,8 @@ while status_game:
 
                     clicked_empty_space = True
                     for unit in units_on_map:
-                        icon_width = unit["изображение"].get_width()
-                        icon_height = unit["изображение"].get_height()
-                        unit_rect = pygame.Rect(unit["позиция"][0], unit["позиция"][1], icon_width, icon_height)
+                        # Создаем прямоугольник с использованием изображения и позиции
+                        unit_rect = pygame.Rect(unit["позиция"], unit["изображение"].get_size())
                         if unit_rect.collidepoint(event.pos):
                             selected_unit = unit
                             clicked_empty_space = False
@@ -536,11 +536,15 @@ while status_game:
             base2.army_tab.draw(screen)
 
         for unit in units_on_map:
+            # Отрисовывает изображение юнита на экране
             screen.blit(unit["изображение"], unit["позиция"])
-            # Отрисовка рамки вокруг выбранного юнита
+
+            # Проверяет, является ли текущий юнит выбранным
             if unit == selected_unit:
+                # Если юнит выбран, рисует рамку вокруг него
                 pygame.draw.rect(screen, (255, 0, 0), (
-                unit["позиция"][0], unit["позиция"][1], unit["изображение"].get_width(), unit["изображение"].get_height()), 2)       
+                    unit["позиция"][0], unit["позиция"][1],
+                    unit["изображение"].get_width(), unit["изображение"].get_height()), 2)
 
     pygame.display.flip()  # Обновление экрана
     clock.tick(90)  # Ограничение частоты кадров
