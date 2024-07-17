@@ -61,6 +61,7 @@ class ProgressTab:
         self.show_progress_window = True
         self.armored_vehicles_open = False
         self.speznaz_open = False
+        self.system_open = False
         self.message = ""
         self.message_time = 0
         self.all_upgrades_purchased = False
@@ -135,6 +136,26 @@ class ProgressTab:
         self.sp_buttons_lev2 = [self.sp_aggit_buttons, self.sp_bio_buttons, self.sp_electro_buttons]
         self.sp_applets_lev2 = [self.sp_aggit_applet, self.sp_bio_applet, self.sp_electro_applet]
 
+        self.sys_fugas_buttons = Button(350, 370, 60, 60, "", images_path_lev1_sys+"/fugas.png", self.sys_fugas)
+        self.sys_optika_buttons = Button(350, 440, 60, 60, "", images_path_lev1_sys+"/optika.png", self.sys_optika)
+        self.sys_electro_reloaded_buttons = Button(350, 510, 60, 60, "", images_path_lev1_sys+"/electro_reloaded.png", self.sys_electro_reloaded)
+
+        self.sys_fugas_applet = TextApplet(420, 390, 200, 50, "Фугасные боеприпасы: 2000 железа, 800 сырья, 500 золота")
+        self.sys_optika_applet = TextApplet(420, 460, 200, 50, "Разработка новой оптики: 1000 железа, 1500 сырья, 800 золота")
+        self.sys_electro_reloaded_applet = TextApplet(420, 530, 200, 50, "Электрическая система перезарядки: 500 железа, 2000 сырья, 1200 золота")
+
+        self.sys_buttons_lev1 = [self.sys_fugas_buttons, self.sys_optika_buttons, self.sys_electro_reloaded_buttons, self.close_button]
+        self.sys_applets_lev1 = [self.sys_fugas_applet,  self.sys_optika_applet, self.sys_electro_reloaded_applet]
+
+        self.sys_giroskop_buttons = Button(350, 370, 60, 60, "", images_path_lev2_sys+"/giroskop.png", self.sys_giroskop)
+        self.sys_bik_system_buttons = Button(350, 440, 60, 60, "", images_path_lev2_sys+"/bik_system.png", self.sys_bik_system)
+
+        self.sys_giroskop_applet = TextApplet(420, 390, 200, 50, "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
+        self.sys_bik_system_applet = TextApplet(420, 390, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
+
+        self.sys_buttons_lev2 = [self.sys_giroskop_buttons, self.sys_bik_system_buttons]
+        self.sys_applets_lev2 = [self.sys_giroskop_applet, self.sys_bik_system_applet]
+
     def draw(self, screen):
         if not self.show_progress_window:
             return
@@ -154,7 +175,7 @@ class ProgressTab:
             for applet in self.armored_applets_lev1:
                 applet.draw(screen, self.font)
 
-            if self.check_armor_ready_1lev():
+            if self.check_armor_unit_one():
                 for button in self.armored_buttons_lev2:
                     button.draw(screen, self.font)
                 for applet in self.armored_applets_lev2:
@@ -170,11 +191,21 @@ class ProgressTab:
             for applet in self.sp_applets_lev1:
                 applet.draw(screen, self.font)
 
-            if self.check_sp_ready_1lev():
+            if self.check_sp_unit_one():
                 for button in self.sp_buttons_lev2:
                     button.draw(screen, self.font)
                 for applet in self.sp_applets_lev2:
                     applet.draw(screen, self.font)
+
+        elif self.system_open:
+            pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))
+            text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+            screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
+            for button in self.sys_buttons_lev1:
+                button.draw(screen, self.font)
+
+            for applet in self.sys_applets_lev1:
+                applet.draw(screen, self.font)
 
         else:
             for button in self.buttons:
@@ -201,17 +232,21 @@ class ProgressTab:
             for button in self.armored_buttons_lev1:
                 button.handle_event(event)
 
-            if self.check_armor_ready_1lev():
+            if self.check_armor_unit_one():
                 for button in self.armored_buttons_lev2:
                     button.handle_event(event)
 
-        elif self.speznaz_open:
+        if self.speznaz_open:
             for button in self.sp_buttons_lev1:
                 button.handle_event(event)
 
-            if self.check_sp_ready_1lev():
+            if self.check_sp_unit_one():
                 for button in self.sp_buttons_lev2:
                     button.handle_event(event)
+
+        elif self.system_open:
+            for button in self.sys_buttons_lev1:
+                button.handle_event(event)
 
         else:
             for button in self.buttons:
@@ -221,21 +256,20 @@ class ProgressTab:
     def armored_vehicles_action(self):
         if not self.armored_vehicles_open:
             self.armored_vehicles_open = True
-            self.label_text = 'Выберите улучшение для специализации "Бронетехника"'
+            self.label_text = 'Выберите улучшение для Бронетехники'
         else:
             self.armored_vehicles_open = False
             self.label_text = "Выберите свою специализацию"
 
-    def computing_systems_action(self):
-        print("Вычислительные системы кнопка нажата")
-
     def close_action(self):
         if self.heavy_weapons_button.enabled == False or self.heavy_armor_button.enabled == False or self.unique_alloys_button.enabled == False or self.advanced_machines_button.enabled == False \
-                or self.sp_ammo_buttons.enabled == False or self.sp_appar_buttons.enabled == False or self.sp_connect_buttons.enabled == False or self.sp_ekip_buttons.enabled == False:
+                or self.sp_ammo_buttons.enabled == False or self.sp_appar_buttons.enabled == False or self.sp_connect_buttons.enabled == False or self.sp_ekip_buttons.enabled == False \
+                or self.sys_fugas_buttons.enabled == False or self.sys_optika_buttons.enabled == False or self.sys_electro_reloaded_buttons.enabled == False:
             self.show_progress_window = False
         else:
             self.armored_vehicles_open = False
             self.speznaz_open = False
+            self.system_open = False
             self.show_progress_window = False
             self.label_text = "Выберите свою специализацию"
 
@@ -328,22 +362,22 @@ class ProgressTab:
         return (not self.sp_connect_buttons.enabled and not self.sp_ammo_buttons.enabled and
                 not self.sp_appar_buttons.enabled and not self.sp_ekip_buttons.enabled)
 
-    def check_armor_ready_1lev(self):
-        return self.check_armor_unit_one()
-
-    def check_sp_ready_1lev(self):
-        return self.check_sp_unit_one()
-
     def check_armor_unit_two(self):
         return not self.dvg_buttons.enabled and not self.sbor_buttons.enabled and not self.kum_buttons.enabled
 
     def check_sp_unit_two(self):
         return not self.sp_electro_buttons.enabled and not self.sp_aggit_buttons.enabled and not self.sp_bio_buttons.enabled
 
+    def check_sys_unit_one(self):
+        return not self.sys_electro_reloaded_buttons.enabled and not self.sys_optika_buttons.enabled and not self.sys_fugas_buttons.enabled
+
+    def check_sys_unit_two(self):
+        pass
+
     def special_forces_action(self):
         if not self.speznaz_open:
             self.speznaz_open = True
-            self.label_text = "Выберите улучшения для Спецназа"
+            self.label_text = "Выберите улучшения Спецназа"
         else:
             self.speznaz_open = False
             self.label_text = "Выберите свою специализацию"
@@ -422,6 +456,63 @@ class ProgressTab:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
 
+    def computing_systems_action(self):
+        if not self.system_open:
+            self.system_open = True
+            self.label_text = "Выберите улучшения Вычислительных систем"
+        else:
+            self.system_open = False
+            self.label_text = "Выберите свою специализацию"
+
+    def sys_fugas(self):
+        if self.base.cashe(1, 2, 3):
+            self.base.update_resources()
+            self.sys_fugas_buttons.enabled = False
+            self.sys_fugas_applet.enabled = False
+            self.display_message("Урон по пехоте увеличен в 4.5 раза")
+        else:
+            self.display_message("Не хватает ресурсов")
+        self.check_all_upgrades_purchased()
+
+    def sys_optika(self):
+        if self.base.cashe(1, 2, 3):
+            self.base.update_resources()
+            self.sys_optika_buttons.enabled = False
+            self.sys_optika_applet.enabled = False
+            self.display_message("Дальность обстрела орудий увеличена")
+        else:
+            self.display_message("Не хватает ресурсов")
+        self.check_all_upgrades_purchased()
+
+    def sys_electro_reloaded(self):
+        if self.base.cashe(1, 2, 3):
+            self.base.update_resources()
+            self.sys_electro_reloaded_buttons.enabled = False
+            self.sys_electro_reloaded_applet.enabled = False
+            self.display_message("Увеличена скорость перезарядки орудий")
+        else:
+            self.display_message("Не хватает ресурсов")
+        self.check_all_upgrades_purchased()
+
+    def sys_giroskop(self):
+        if self.base.cashe(1, 2, 3):
+            self.base.update_resources()
+            self.sys_giroskop_buttons.enabled = False
+            self.sys_giroskop_applet.enabled = False
+            self.display_message("Теперь снаряды будут точнее")
+        else:
+            self.display_message("Не хватает ресурсов")
+        self.check_all_upgrades_purchased()
+
+    def sys_bik_system(self):
+        if self.base.cashe(1, 2, 3):
+            self.base.update_resources()
+            self.sys_bik_system_buttons.enabled = False
+            self.sys_bik_system_applet.enables = False
+            self.display_message("Теперь гаубицы могут стрелять в любую точку карты")
+        else:
+            self.display_message("Не хватает ресурсов")
+        self.check_all_upgrades_purchased()
 
     def display_message(self, text):
         self.message = text
@@ -431,7 +522,7 @@ class ProgressTab:
         self.show_progress_window = True
 
     def update_buttons_state(self):
-        if self.check_armor_ready_1lev():
+        if self.check_armor_unit_one():
             for button in self.armored_buttons_lev2:
                 button.enabled = True
             for applet in self.armored_applets_lev2:
@@ -442,7 +533,7 @@ class ProgressTab:
             for applet in self.armored_applets_lev2:
                 applet.enabled = False
 
-        if self.check_sp_ready_1lev():
+        if self.check_sp_unit_one():
             for button in self.sp_buttons_lev2:
                 button.enabled = True
             for applet in self.sp_applets_lev2:
@@ -454,5 +545,5 @@ class ProgressTab:
                 applet.enabled = False
 
     def check_all_upgrades_purchased(self):
-        if self.check_armor_ready_1lev() and self.check_armor_unit_two() or self.check_sp_ready_1lev() and self.check_sp_unit_two():
+        if self.check_armor_unit_one() and self.check_armor_unit_two() or self.check_sp_unit_one() and self.check_sp_unit_two():
             self.all_upgrades_purchased = True
