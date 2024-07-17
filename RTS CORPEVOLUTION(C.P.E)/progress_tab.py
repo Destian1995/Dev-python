@@ -38,6 +38,7 @@ class Button:
                 self.action()
 
 
+
 class TextApplet:
     def __init__(self, x, y, width, height, text):
         self.rect = pygame.Rect(x, y, width, height)
@@ -46,7 +47,7 @@ class TextApplet:
 
     def draw(self, screen, font):
         if self.enabled:
-            text_surf = font.render(self.text, True, (0, 0, 0))
+            text_surf = font.render(self.text, True, (255, 255, 255))
             text_rect = text_surf.get_rect(topleft=(self.rect.x, self.rect.y))
             screen.blit(text_surf, text_rect)
 
@@ -65,6 +66,8 @@ class ProgressTab:
         self.message = ""
         self.message_time = 0
         self.all_upgrades_purchased = False
+        self.transition_start_time = None
+        self.transition_duration = 0.5
 
         # General buttons
         self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path + "/special_forces.png",
@@ -136,38 +139,64 @@ class ProgressTab:
         self.sp_buttons_lev2 = [self.sp_aggit_buttons, self.sp_bio_buttons, self.sp_electro_buttons]
         self.sp_applets_lev2 = [self.sp_aggit_applet, self.sp_bio_applet, self.sp_electro_applet]
 
-        self.sys_fugas_buttons = Button(350, 370, 60, 60, "", images_path_lev1_sys+"/fugas.png", self.sys_fugas)
-        self.sys_optika_buttons = Button(350, 440, 60, 60, "", images_path_lev1_sys+"/optika.png", self.sys_optika)
-        self.sys_electro_reloaded_buttons = Button(350, 510, 60, 60, "", images_path_lev1_sys+"/electro_reloaded.png", self.sys_electro_reloaded)
+        self.sys_fugas_buttons = Button(310, 370, 60, 60, "", images_path_lev1_sys+"/fugas.png", self.sys_fugas)
+        self.sys_optika_buttons = Button(310, 440, 60, 60, "", images_path_lev1_sys+"/optika.png", self.sys_optika)
+        self.sys_electro_reloaded_buttons = Button(310, 510, 60, 60, "", images_path_lev1_sys+"/electro_reloaded.png", self.sys_electro_reloaded)
 
-        self.sys_fugas_applet = TextApplet(420, 390, 200, 50, "Фугасные боеприпасы: 2000 железа, 800 сырья, 500 золота")
-        self.sys_optika_applet = TextApplet(420, 460, 200, 50, "Разработка новой оптики: 1000 железа, 1500 сырья, 800 золота")
-        self.sys_electro_reloaded_applet = TextApplet(420, 530, 200, 50, "Электрическая система перезарядки: 500 железа, 2000 сырья, 1200 золота")
+        self.sys_fugas_applet = TextApplet(390, 390, 200, 50, "Фугасные боеприпасы: 2000 железа, 800 сырья, 500 золота")
+        self.sys_optika_applet = TextApplet(390, 460, 200, 50, "Разработка новой оптики: 1000 железа, 1500 сырья, 800 золота")
+        self.sys_electro_reloaded_applet = TextApplet(390, 530, 200, 50, "Электрическая система перезарядки: 500 железа, 2000 сырья, 1200 золота")
 
         self.sys_buttons_lev1 = [self.sys_fugas_buttons, self.sys_optika_buttons, self.sys_electro_reloaded_buttons, self.close_button]
         self.sys_applets_lev1 = [self.sys_fugas_applet,  self.sys_optika_applet, self.sys_electro_reloaded_applet]
 
-        self.sys_giroskop_buttons = Button(350, 370, 60, 60, "", images_path_lev2_sys+"/giroskop.png", self.sys_giroskop)
-        self.sys_bik_system_buttons = Button(350, 440, 60, 60, "", images_path_lev2_sys+"/bik_system.png", self.sys_bik_system)
+        self.sys_giroskop_buttons = Button(310, 370, 60, 60, "", images_path_lev2_sys+"/giroskop.png", self.sys_giroskop)
+        self.sys_bik_system_buttons = Button(310, 440, 60, 60, "", images_path_lev2_sys+"/bik_system.png", self.sys_bik_system)
 
-        self.sys_giroskop_applet = TextApplet(420, 390, 200, 50, "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
-        self.sys_bik_system_applet = TextApplet(420, 460, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
+        self.sys_giroskop_applet = TextApplet(390, 390, 200, 50, "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
+        self.sys_bik_system_applet = TextApplet(390, 460, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
 
         self.sys_buttons_lev2 = [self.sys_giroskop_buttons, self.sys_bik_system_buttons]
         self.sys_applets_lev2 = [self.sys_giroskop_applet, self.sys_bik_system_applet]
+
+    def draw_rounded_rect(self, surface, color, rect, radius, border_color=None, border_width=0):
+        rect = pygame.Rect(rect)
+        color = pygame.Color(*color)
+        rectangle = pygame.Surface(rect.size, pygame.SRCALPHA)
+        pygame.draw.rect(rectangle, color, rectangle.get_rect(), border_radius=radius)
+
+        if border_color and border_width > 0:
+            border_rect = rectangle.get_rect().inflate(-border_width * 2, -border_width * 2)
+            pygame.draw.rect(rectangle, border_color, border_rect, border_radius=radius)
+
+        surface.blit(rectangle, rect.topleft)
+
+    def start_transition(self):
+        self.transition_start_time = time.time()
+
+    def get_transition_progress(self):
+        if self.transition_start_time is None:
+            return 1
+        progress = (time.time() - self.transition_start_time) / self.transition_duration
+        return min(1, progress)
 
     def draw(self, screen):
         if not self.show_progress_window:
             return
 
-        pygame.draw.rect(screen, (192, 192, 192), (315, 320, 640, 250))
+        progress = self.get_transition_progress()
+        alpha = int(255 * progress)
+        bg_color = (30, 30, 60, alpha)
+        border_color = (0, 0, 0)
 
-        text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+        self.draw_rounded_rect(screen, bg_color, (315, 320, 640, 250), 20, border_color=bg_color, border_width=2)
+
+        text_surf = self.font.render(self.label_text, True, (255, 255, 255))
         screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
 
         if self.armored_vehicles_open:
-            pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))
-            text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+            self.draw_rounded_rect(screen, bg_color, (270, 320, 740, 350), 20, border_color=bg_color, border_width=2)
+            text_surf = self.font.render(self.label_text, True, (255, 255, 255))
             screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
             for button in self.armored_buttons_lev1:
                 button.draw(screen, self.font)
@@ -182,8 +211,8 @@ class ProgressTab:
                     applet.draw(screen, self.font)
 
         elif self.speznaz_open:
-            pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))
-            text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+            self.draw_rounded_rect(screen, bg_color, (270, 320, 740, 350), 20, border_color=bg_color, border_width=2)
+            text_surf = self.font.render(self.label_text, True, (255, 255, 255))
             screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
             for button in self.sp_buttons_lev1:
                 button.draw(screen, self.font)
@@ -198,8 +227,8 @@ class ProgressTab:
                     applet.draw(screen, self.font)
 
         elif self.system_open:
-            pygame.draw.rect(screen, (192, 192, 192), (270, 320, 740, 350))
-            text_surf = self.font.render(self.label_text, True, (0, 0, 0))
+            self.draw_rounded_rect(screen, bg_color, (270, 320, 740, 350), 20, border_color=bg_color, border_width=2)
+            text_surf = self.font.render(self.label_text, True, (255, 255, 255))
             screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
             for button in self.sys_buttons_lev1:
                 button.draw(screen, self.font)
@@ -219,7 +248,7 @@ class ProgressTab:
 
         # Отображение временного сообщения
         if self.message:
-            message_surf = self.font.render(self.message, True, (0, 0, 0))
+            message_surf = self.font.render(self.message, True, (255, 255, 255))
             screen.blit(message_surf, (self.screen_width // 2 - message_surf.get_width() // 2, 640))
 
             if time.time() - self.message_time > 2:
@@ -227,7 +256,7 @@ class ProgressTab:
 
         # Отображение статичного сообщения
         if self.all_upgrades_purchased:
-            static_message_surf = self.font.render("Все улучшения были приобретены!", True, (0, 0, 0))
+            static_message_surf = self.font.render("Все улучшения были приобретены!", True, (255, 255, 255))
             screen.blit(static_message_surf, (self.screen_width // 2 - static_message_surf.get_width() // 2, 450))
 
     def handle_event(self, event):
