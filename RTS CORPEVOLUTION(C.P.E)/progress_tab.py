@@ -151,7 +151,7 @@ class ProgressTab:
         self.sys_bik_system_buttons = Button(350, 440, 60, 60, "", images_path_lev2_sys+"/bik_system.png", self.sys_bik_system)
 
         self.sys_giroskop_applet = TextApplet(420, 390, 200, 50, "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
-        self.sys_bik_system_applet = TextApplet(420, 390, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
+        self.sys_bik_system_applet = TextApplet(420, 460, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
 
         self.sys_buttons_lev2 = [self.sys_giroskop_buttons, self.sys_bik_system_buttons]
         self.sys_applets_lev2 = [self.sys_giroskop_applet, self.sys_bik_system_applet]
@@ -207,6 +207,12 @@ class ProgressTab:
             for applet in self.sys_applets_lev1:
                 applet.draw(screen, self.font)
 
+            if self.check_sys_unit_one():
+                for button in self.sys_buttons_lev2:
+                    button.draw(screen, self.font)
+                for applet in self.sys_applets_lev2:
+                    applet.draw(screen, self.font)
+
         else:
             for button in self.buttons:
                 button.draw(screen, self.font)
@@ -236,7 +242,7 @@ class ProgressTab:
                 for button in self.armored_buttons_lev2:
                     button.handle_event(event)
 
-        if self.speznaz_open:
+        elif self.speznaz_open:
             for button in self.sp_buttons_lev1:
                 button.handle_event(event)
 
@@ -247,6 +253,10 @@ class ProgressTab:
         elif self.system_open:
             for button in self.sys_buttons_lev1:
                 button.handle_event(event)
+
+            if self.check_sys_unit_one():
+                for button in self.sys_buttons_lev2:
+                    button.handle_event(event)
 
         else:
             for button in self.buttons:
@@ -372,7 +382,7 @@ class ProgressTab:
         return not self.sys_electro_reloaded_buttons.enabled and not self.sys_optika_buttons.enabled and not self.sys_fugas_buttons.enabled
 
     def check_sys_unit_two(self):
-        pass
+        return not self.sys_bik_system_buttons.enabled and not self.sys_giroskop_buttons.enabled
 
     def special_forces_action(self):
         if not self.speznaz_open:
@@ -508,7 +518,7 @@ class ProgressTab:
         if self.base.cashe(1, 2, 3):
             self.base.update_resources()
             self.sys_bik_system_buttons.enabled = False
-            self.sys_bik_system_applet.enables = False
+            self.sys_bik_system_applet.enabled = False
             self.display_message("Теперь гаубицы могут стрелять в любую точку карты")
         else:
             self.display_message("Не хватает ресурсов")
@@ -538,12 +548,25 @@ class ProgressTab:
                 button.enabled = True
             for applet in self.sp_applets_lev2:
                 applet.enabled = True
+
         else:
             for button in self.sp_buttons_lev2:
                 button.enabled = False
             for applet in self.sp_applets_lev2:
                 applet.enabled = False
 
+        if self.check_sys_unit_one():
+            for button in self.sys_buttons_lev2:
+                button.enabled = True
+            for applet in self.sys_applets_lev2:
+                applet.enabled = True
+
+        else:
+            for button in self.sys_buttons_lev2:
+                button.enabled = False
+            for applet in self.sys_applets_lev2:
+                applet.enabled = False
+
     def check_all_upgrades_purchased(self):
-        if self.check_armor_unit_one() and self.check_armor_unit_two() or self.check_sp_unit_one() and self.check_sp_unit_two():
+        if self.check_armor_unit_one() and self.check_armor_unit_two() or self.check_sp_unit_one() and self.check_sp_unit_two() or self.check_sys_unit_one() and self.check_sys_unit_two():
             self.all_upgrades_purchased = True
