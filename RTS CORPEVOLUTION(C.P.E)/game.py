@@ -4,8 +4,9 @@ from army import *
 import sys
 import pygame
 
-
 sys.path.append(os.path.dirname(__file__))
+
+
 def check_files(directory, extensions):
     files = []
     for filename in os.listdir(directory):
@@ -16,6 +17,7 @@ def check_files(directory, extensions):
                 files.append(filepath)
     return files
 
+
 # Путь к файлам
 directory_path = r"C:\Users\User\Desktop\C.P.E"
 extensions_to_check = ['png', 'jpg']
@@ -23,18 +25,19 @@ found_files = check_files(directory_path, extensions_to_check)
 print("Найденные файлы:", found_files)
 
 # Путь к изображениям баз и объектов
-base_image_path1 = r"C:\Users\User\Desktop\C.P.E\base\base1.png"  # Изображение для базы 1
-base_image_path2 = r"C:\Users\User\Desktop\C.P.E\base\base2.png"  # Изображение для базы 2
-industry_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\industry.png"  # Изображение для industry
-surie_image_path = r"C:\Users\User\Desktop\C.P.E\main_resources\surie.png"  # Изображение для surie
-forest_image_path = r"C:\Users\User\Desktop\C.P.E\alls\forest.png"  # Изображение для леса
+base_image_path1 = directory_path + r"\base\base1.png"  # Изображение для базы 1
+base_image_path2 = directory_path + r"\base\base2.png"  # Изображение для базы 2
+industry_image_path = directory_path + r"\main_resources\industry.png"  # Изображение для industry
+surie_image_path = directory_path + r"\main_resources\surie.png"  # Изображение для surie
+forest_image_path = directory_path + r"\alls\forest.png"  # Изображение для леса
+bulding_image_path = directory_path + r'\alls\bulding.png'  # Изображение для здания
 units_on_map = []
+units = []
 
 # Настройка окна
 screen_width = 1200
 screen_height = 900
 screen = pygame.display.set_mode((screen_width, screen_height))
-
 
 # Цвета
 BLACK = (0, 0, 0)
@@ -42,12 +45,14 @@ WHITE = (255, 255, 255)
 GREY = (128, 128, 128)
 BEIGE = (222, 184, 135)
 PANEL = (100, 149, 237)
+GREEN = (190, 255, 190)
 
 # Инициализация Pygame
 pygame.init()
 # Шрифты
 font = pygame.font.Font(None, 24)
 menu_font = pygame.font.Font(None, 72)
+
 
 class InfoPanel:
     def __init__(self, x, y, width, height):
@@ -65,11 +70,23 @@ class InfoPanel:
             text_surf = font.render(message, True, WHITE)
             screen.blit(text_surf, (self.rect.x + 5, self.rect.y + 5 + i * 20))
 
+
 # Создание панели информации
 info_panel = InfoPanel(screen_width - 620, 720, 610, 120)
 
 
 class Forest:
+    def __init__(self, x, y, image_path):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load(image_path)
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+
+
+class Bulding:
     def __init__(self, x, y, image_path):
         self.x = x
         self.y = y
@@ -104,28 +121,28 @@ class Map:
             while True:
                 x = random.randint(0, self.width - 100)
                 y = random.randint(0, self.height - 50)
-                if not is_overlapping(x, y, 190, 50, all_objects):
-                    self.buildings.append((x, y, 190, 50))
-                    all_objects.append((x, y, 190, 50))
+                if not is_overlapping(x, y, 70, 70, all_objects):
+                    building = Bulding(x, y, bulding_image_path)
+                    self.buildings.append(building)
+                    all_objects.append((x, y, 70, 70))
                     break
 
         # Генерация лесов
         num_forests = random.randint(12, 22)
         for _ in range(num_forests):
             while True:
-                x = random.randint(0, self.width - 50)
-                y = random.randint(0, self.height - 50)
-                if not is_overlapping(x, y, 50, 50, all_objects):
+                x = random.randint(0, self.width - 70)
+                y = random.randint(0, self.height - 70)
+                if not is_overlapping(x, y, 70, 70, all_objects):
                     forest = Forest(x, y, forest_image_path)
                     self.forests.append(forest)
-                    all_objects.append((x, y, 50, 50))
+                    all_objects.append((x, y, 70, 70))
                     break
 
     def draw(self, screen):
-        pygame.draw.rect(screen, BLACK, (0, 0, self.width, self.height))
-        for x, y, width, height in self.buildings:
-            pygame.draw.rect(screen, GREY, (x, y, width, height))
-            self.draw_building_windows(screen, x, y, width, height)
+        pygame.draw.rect(screen, GREEN, (0, 0, self.width, self.height))
+        for bulding in self.buildings:
+            bulding.draw(screen)
 
         for forest in self.forests:
             forest.draw(screen)
@@ -137,11 +154,22 @@ class Map:
             for col in range(x + window_spacing, x + width - window_size, window_size + window_spacing):
                 pygame.draw.rect(screen, WHITE, (col, row, window_size, window_size))
 
+
 def place_unit(unit_type, icon_path, x, y):
     print(f"Добавление единицы {unit_type} на карту")
     unit_icon = pygame.image.load(icon_path)
-    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # размер
-    units_on_map.append({"тип юнита": unit_type, "изображение": unit_icon, "позиция": (x, y)})
+    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # Размер иконки
+    units_on_map.append({"тип": unit_type, "изображение": unit_icon, "позиция": (x, y)})
+
+
+
+def units_check():
+    for unit in units_on_map:
+        if unit["тип"] == 'Бронемашина':
+            units.append(unit)
+            print(units)
+
+
 
 class Base:
     def __init__(self, x, y, image_path, player_controlled=False, resource_type=None, production_rate=15):
@@ -166,8 +194,6 @@ class Base:
         self.summ_upgrade_surie = self.production_rate * 4
         self.summ_upgrade_money = self.production_rate * 12
         self.close_button = Button(0, 0, 0, 0, "", self.close_upgrade_window)
-        self.army_tab = ArmyTab(screen_width, screen_height, place_unit)
-
 
     def draw_upgrade_window(self, screen):
         window_width = 600
@@ -222,7 +248,7 @@ class Base:
         progress_tab.draw(screen)
 
     def draw_army_tab_window(self, screen):
-        self.army_tab.draw(screen)
+        army_tab.draw(screen)
 
     def close_upgrade_window(self):
         self.show_upgrade_window = False
@@ -235,7 +261,6 @@ class Base:
             self.draw_progress_window(screen)
         if self.show_army_tab_window:
             self.draw_army_tab_window(screen)
-
 
     def deduct_money(self, amount):
         if self.money >= amount:
@@ -281,7 +306,6 @@ class Base:
         self.money += 0.002 * self.production_rate
         self.update_resources()  # Обновление ресурсов здесь
 
-
     def upgrade(self, resource_type):
         # Определение стоимости улучшений для каждого ресурса
         upgrade_costs = {
@@ -298,7 +322,6 @@ class Base:
             # Списание денег
             self.money -= upgrade_cost
 
-
             # Увеличение скорости производства на 10%
             if resource_type == 'железная руда':
                 self.production_rate += self.production_rate * 0.1
@@ -310,10 +333,10 @@ class Base:
                 self.production_rate += self.production_rate * 0.1
                 print('Нажал на кнопку улучшить содержание людей')
 
-
             # Обновление ресурсов после улучшения
             self.update_resources()
-            info_panel.add_message(f"Улучшение {resource_type} выполнено! Новая скорость добычи: {self.production_rate}")
+            info_panel.add_message(
+                f"Улучшение {resource_type} выполнено! Новая скорость добычи: {self.production_rate}")
         else:
             # Сообщение об ошибке при недостатке денег
             info_panel.add_message("Недостаточно денег для улучшения!" f" {resource_type}: {self.money}")
@@ -393,21 +416,25 @@ def create_resources_around_base(base, all_objects):
             x = base.x + random.randint(-50, 110)
             y = base.y + random.randint(-50, 110)
             if not is_overlapping(x, y, 70, 70, all_objects):  # Предположим, что размер ресурсов 70x70
-                resource = Base(x, y, image_path, player_controlled=True, resource_type="сырье", production_rate=15)
+                resource = Base(x, y, image_path, player_controlled=True, resource_type="", production_rate=15)
                 resources.append(resource)
                 all_objects.append((x, y, 70, 70))
                 break
     return resources
 
 
-
 status_game = True
 game_state = 'menu'
 
-# Создание экзмепляров для создания баз
+# Создание экзмепляров для создания баз и войск
 base1 = Base(50, 50, base_image_path1, player_controlled=False)  # Противник
 base2 = Base(900, 500, base_image_path2, player_controlled=True)  # Игрок
 progress_tab = ProgressTab(screen_width, screen_height, base2)
+army_tab = ArmyTab(screen_width, screen_height, place_unit, base2)
+x = 0
+y = 0
+speed = 0
+units_manage = Unit(None, x, y, speed)
 info = ProgressTab(screen_width, screen_height, info_panel)
 
 # Передача координат для генерации объектов
@@ -460,7 +487,8 @@ while status_game:
                         print("Прогресс")
                     if army_button.is_clicked(pygame.mouse.get_pos()):
                         base2.show_army_tab_window = True
-                        base2.army_tab.open()
+                        army_tab.open()
+                        units_check()
                         print("Армия")
                     if exchange_button.is_clicked(pygame.mouse.get_pos()):
                         print("Рынок")
@@ -476,7 +504,7 @@ while status_game:
                         progress_tab.handle_event(event)
 
                     if base2.show_army_tab_window:
-                        base2.army_tab.handle_event(event)
+                        army_tab.handle_event(event)
 
                     clicked_empty_space = True
                     for unit in units_on_map:
@@ -494,9 +522,14 @@ while status_game:
                 elif event.button == 3:  # Правая кнопка мыши
                     if selected_unit:
                         # Перемещение юнита к позиции курсора мыши
+                        # Здесь нужно придумать вызов экземпляра класса Unit для реализации передвижения юнита, сам экземпляр надо создать ранее.
+                        # в Unit мы передаем x,y координаты юнита и параметр скорости(speed) значение этого параметра должно зависить от типа юнита, которое мы должны переопределить с помощью
+                        # функции, вызывая которую мы передаем в нее тип выбранного юнита а она возвращает его скорость, и затем мы ее передаем в экземпляр Unit
                         selected_unit["позиция"] = event.pos
-
-
+                        x = selected_unit[0]["позиция"][0]  # Доступ к первому элементу кортежа "позиция"
+                        y = selected_unit[0]["позиция"][1]  # Доступ к второму элементу кортежа "позиция"
+                        speed = 43
+                        Unit(None, x, y, speed)
 
     # Обновление ресурсов базы игрока в игровом режиме
     if game_state == 'game':
@@ -533,7 +566,7 @@ while status_game:
 
         # Отрисовка окна армии, если оно активно
         if base2.show_army_tab_window:
-            base2.army_tab.draw(screen)
+            army_tab.draw(screen)
 
         for unit in units_on_map:
             # Отрисовывает изображение юнита на экране
