@@ -1,6 +1,6 @@
 import os
 import math
-from progress_tab import *
+from progress_tab import * #Отсюда импортируется и pygame в том числе
 
 images_path = r'C:\Users\User\Desktop\C.P.E'
 unit_opolchenec = os.path.join(images_path, r'units\base2\opolch.png')
@@ -75,6 +75,7 @@ class Unit:
                     self.y = target_y
                     self.target_position = None
 
+
 class UnitButton:
     def __init__(self, x, y, width, height, text, icon_path, action):
         if not isinstance(icon_path, str):
@@ -105,24 +106,9 @@ class UnitButton:
             if self.is_clicked(event.pos):
                 self.action()
 
-class UnitButtonFactory:
-    def __init__(self):
-        self.buttons = []
-
-    def create_buttons(self, army_tab):
-        if ProgressTab.check_armor_unit_one:
-            self.buttons.append(
-                UnitButton(450, 350, 95, 95, "Бронемашина", unit_bronemashina, army_tab.bronemashina_action))
-            self.buttons.append(UnitButton(550, 350, 95, 95, "Штурмовик", unit_shturmovik, army_tab.shturmovik_action))
-
-        if ProgressTab.check_armor_unit_one:
-            self.buttons.append(UnitButton(650, 350, 95, 95, "Танк", unit_tank, army_tab.tank_action))
-            self.buttons.append(UnitButton(750, 350, 95, 95, "БТР", unit_btr, army_tab.btr_action))
-
-        return self.buttons
 
 class ArmyTab:
-    def __init__(self, screen_width, screen_height, place_unit_callback, base):
+    def __init__(self, screen_width, screen_height, place_unit_callback, base, progress):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.font = pygame.font.Font(None, 24)
@@ -131,13 +117,20 @@ class ArmyTab:
         self.place_unit_callback = place_unit_callback
         self.units = []
         self.base = base
-        self.unit_button_factory = UnitButtonFactory()
+        self.progress = progress
+        self.transition_duration = 0.5
 
         # Army unit buttons
         self.opolchenec_button = UnitButton(350, 350, 95, 95, "Ополченец", unit_opolchenec, self.opolchenec_action)
         self.close_button = UnitButton(890, 515, 50, 50, "", os.path.join(images_path, "close.png"), self.close_action)
         self.buttons = [self.opolchenec_button, self.close_button]
-        self.buttons.extend(self.unit_button_factory.create_buttons(self))
+        self.buttons_sturm = UnitButton(550, 350, 95, 95, "Штурмовик", unit_shturmovik, self.shturmovik_action)
+        self.buttons_lev1_arm = [self.buttons_sturm]
+        self.buttons_bronemach = UnitButton(450, 350, 95, 95, "Бронемашина", unit_bronemashina, self.bronemashina_action)
+        self.buttons_lev2_arm = [self.buttons_bronemach]
+        self.buttons_btr = UnitButton(750, 350, 95, 95, "БТР", unit_btr, self.btr_action)
+        self.buttons_tank = UnitButton(650, 350, 95, 95, "Танк", unit_tank, self.tank_action)
+        self.buttons_lev3_arm = [self.buttons_btr, self.buttons_tank]
 
     def draw(self, screen):
         if not self.show_army_tab_window:
@@ -148,53 +141,115 @@ class ArmyTab:
         text_surf = self.font.render(self.label_text, True, (0, 0, 0))
         screen.blit(text_surf, (self.screen_width // 2 - text_surf.get_width() // 2, 330))
 
-        for button in self.buttons:
-            button.draw(screen, self.font)
+        if self.progress.check_army() == 1:
+            for button in self.buttons_lev1_arm:
+                button.draw(screen, self.font)
+
+            for button in self.buttons:
+                 button.draw(screen, self.font)
+
+        elif self.progress.check_army() == 2:
+                for button in self.buttons_lev1_arm:
+                    button.draw(screen, self.font)
+
+                for button in self.buttons_lev2_arm:
+                    button.draw(screen, self.font)
+
+                for button in self.buttons:
+                    button.draw(screen, self.font)
+
+        elif self.progress.check_army() == 3:
+
+                for button in self.buttons_lev1_arm:
+                    button.draw(screen, self.font)
+
+                for button in self.buttons_lev2_arm:
+                    button.draw(screen, self.font)
+
+                for button in self.buttons_lev3_arm:
+                    button.draw(screen, self.font)
+
+                for button in self.buttons:
+                    button.draw(screen, self.font)
+        else:
+            for button in self.buttons:
+                button.draw(screen, self.font)
 
     def handle_event(self, event):
         if not self.show_army_tab_window:
             return
 
-        for button in self.buttons:
-            button.handle_event(event)
+        if self.progress.armored_vehicles_open:
+            if self.progress.check_army() == 1:
+                for button in self.buttons_lev1_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons:
+                    button.handle_event(event)
+
+            elif self.progress.check_army() == 2:
+                for button in self.buttons_lev1_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons_lev2_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons:
+                    button.handle_event(event)
+
+            elif self.progress.check_army() == 3:
+
+                for button in self.buttons_lev1_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons_lev2_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons_lev3_arm:
+                    button.handle_event(event)
+
+                for button in self.buttons:
+                    button.handle_event(event)
+            else:
+                for button in self.buttons:
+                    button.handle_event(event)
+        else:
+            for button in self.buttons:
+                button.handle_event(event)
 
     def move_unit(self, unit_index, target_x, target_y):
-        # Проверка, находится ли индекс в пределах списка
         if unit_index < len(self.units):
-            # Получение объекта Unit по индексу
             unit = self.units[unit_index]
-            # Вызов метода move_to для объекта Unit
             unit.move_to(target_x, target_y)
         else:
-            # Вывод сообщения об ошибке (необязательно)
             print("Неверный индекс юнита:", unit_index)
 
     def opolchenec_action(self):
         print("Ополченец кнопка нажата")
-        x, y = 900, 300  # Пример координат
+        x, y = 900, 300
         self.place_unit_callback("Ополченец", unit_opolchenec, x, y)
 
     def bronemashina_action(self):
         print("Бронемашина кнопка нажата")
         if self.base.cashe(1, 2, 3):
             self.base.update_resources()
-            x, y = 900, 350  # Пример координат
+            x, y = 900, 350
             self.place_unit_callback("Бронемашина", unit_bronemashina, x, y)
 
     def shturmovik_action(self):
         print("Штурмовик кнопка нажата")
-        x, y = 900, 400  # Пример координат
+        x, y = 900, 400
         self.place_unit_callback("Штурмовик", unit_shturmovik, x, y)
-
-    def tank_action(self):
-        print("Танк кнопка нажата")
-        x, y = 900, 450  # Пример координат
-        self.place_unit_callback("Танк", unit_tank, x, y)
 
     def btr_action(self):
         print("БТР кнопка нажата")
-        x, y = 850, 500  # Пример координат
+        x, y = 850, 500
         self.place_unit_callback("БТР", unit_btr, x, y)
+
+    def tank_action(self):
+        print("Танк кнопка нажата")
+        x, y = 900, 450
+        self.place_unit_callback("Танк", unit_tank, x, y)
 
     def close_action(self):
         self.show_army_tab_window = False

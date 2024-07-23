@@ -430,7 +430,7 @@ game_state = 'menu'
 base1 = Base(50, 50, base_image_path1, player_controlled=False)  # Противник
 base2 = Base(900, 500, base_image_path2, player_controlled=True)  # Игрок
 progress_tab = ProgressTab(screen_width, screen_height, base2)
-army_tab = ArmyTab(screen_width, screen_height, place_unit, base2)
+army_tab = ArmyTab(screen_width, screen_height, place_unit, base2, progress_tab)
 info = ProgressTab(screen_width, screen_height, info_panel)
 
 # Передача координат для генерации объектов

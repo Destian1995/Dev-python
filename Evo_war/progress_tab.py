@@ -9,6 +9,7 @@ images_path_lev2_sp = r'C:\Users\User\Desktop\C.P.E\progress\spez\2_level'
 images_path_lev1_sys = r'C:\Users\User\Desktop\C.P.E\progress\system\1_level'
 images_path_lev2_sys = r'C:\Users\User\Desktop\C.P.E\progress\system\2_level'
 
+
 class Button:
     def __init__(self, x, y, width, height, text, icon_path, action):
         self.rect = pygame.Rect(x, y, width, height)
@@ -60,6 +61,7 @@ class ProgressTab:
         self.label_text = "Выберите свою специализацию"
         self.show_progress_window = True
         self.armored_vehicles_open = False
+        self.arm_unit = []
         self.speznaz_open = False
         self.system_open = False
         self.message = ""
@@ -114,46 +116,59 @@ class ProgressTab:
         self.armored_buttons_lev2 = [self.dvg_buttons, self.sbor_buttons, self.kum_buttons]
         self.armored_applets_lev2 = [self.dvg_applet, self.sbor_applet, self.kum_applet]
 
-        self.sp_ammo_buttons = Button(350, 370, 60, 60, "", images_path_lev1_sp+"/ammo.png", self.sp_ammo)
-        self.sp_appar_buttons = Button(350, 440, 60, 60, "", images_path_lev1_sp+"/appar.png", self.sp_appar)
-        self.sp_connect_buttons = Button(350, 510, 60, 60, "", images_path_lev1_sp+"/connect.png", self.sp_connect)
-        self.sp_ekip_buttons = Button(350, 580, 60, 60, "", images_path_lev1_sp+"/ekip.png", self.sp_ekip)
+        self.sp_ammo_buttons = Button(350, 370, 60, 60, "", images_path_lev1_sp + "/ammo.png", self.sp_ammo)
+        self.sp_appar_buttons = Button(350, 440, 60, 60, "", images_path_lev1_sp + "/appar.png", self.sp_appar)
+        self.sp_connect_buttons = Button(350, 510, 60, 60, "", images_path_lev1_sp + "/connect.png", self.sp_connect)
+        self.sp_ekip_buttons = Button(350, 580, 60, 60, "", images_path_lev1_sp + "/ekip.png", self.sp_ekip)
 
         self.sp_ammo_applet = TextApplet(420, 390, 200, 50, "Улучшенные винтовки: 400 железа, 900 сырья, 350 золота")
         self.sp_appar_applet = TextApplet(420, 460, 200, 50, "Тепловизоры, ПНВ: 300 железа, 700 сырья, 1500 золота")
-        self.sp_connect_applet = TextApplet(420, 530, 200, 50, "Спутниковая связь: 1000 железа, 1200 сырья, 3000 золота")
-        self.sp_ekip_applet = TextApplet(420, 600, 200, 50, 'Экипировка класса "Альфа": 150 железа, 700 сырья, 2600 золота')
+        self.sp_connect_applet = TextApplet(420, 530, 200, 50,
+                                            "Спутниковая связь: 1000 железа, 1200 сырья, 3000 золота")
+        self.sp_ekip_applet = TextApplet(420, 600, 200, 50,
+                                         'Экипировка класса "Альфа": 150 железа, 700 сырья, 2600 золота')
 
-        self.sp_buttons_lev1 = [self.sp_ammo_buttons, self.sp_appar_buttons, self.sp_connect_buttons, self.sp_ekip_buttons, self.close_button]
+        self.sp_buttons_lev1 = [self.sp_ammo_buttons, self.sp_appar_buttons, self.sp_connect_buttons,
+                                self.sp_ekip_buttons, self.close_button]
         self.sp_applets_lev1 = [self.sp_ammo_applet, self.sp_appar_applet, self.sp_connect_applet, self.sp_ekip_applet]
 
-        self.sp_aggit_buttons = Button(350, 370, 60, 60, "", images_path_lev2_sp+"/aggitation.png", self.sp_aggit)
-        self.sp_bio_buttons = Button(350, 440, 60, 60, "", images_path_lev2_sp+"/bio.png", self.sp_bio)
-        self.sp_electro_buttons = Button(350, 510, 60, 60, "", images_path_lev2_sp+"/electro.png", self.sp_electro)
+        self.sp_aggit_buttons = Button(350, 370, 60, 60, "", images_path_lev2_sp + "/aggitation.png", self.sp_aggit)
+        self.sp_bio_buttons = Button(350, 440, 60, 60, "", images_path_lev2_sp + "/bio.png", self.sp_bio)
+        self.sp_electro_buttons = Button(350, 510, 60, 60, "", images_path_lev2_sp + "/electro.png", self.sp_electro)
 
         self.sp_aggit_applet = TextApplet(420, 390, 200, 50, "Аггитация: 100 железа, 1900 сырья, 9000 золота")
-        self.sp_bio_applet = TextApplet(420, 460, 200, 50, "Биологическая модернизация: 50 железа, 4500 сырья, 25000 золота")
-        self.sp_electro_applet = TextApplet(420, 530, 200, 50, "Экспериментальная электроника: 600 железа, 7000 сырья, 40000 золота")
+        self.sp_bio_applet = TextApplet(420, 460, 200, 50,
+                                        "Биологическая модернизация: 50 железа, 4500 сырья, 25000 золота")
+        self.sp_electro_applet = TextApplet(420, 530, 200, 50,
+                                            "Экспериментальная электроника: 600 железа, 7000 сырья, 40000 золота")
 
         self.sp_buttons_lev2 = [self.sp_aggit_buttons, self.sp_bio_buttons, self.sp_electro_buttons]
         self.sp_applets_lev2 = [self.sp_aggit_applet, self.sp_bio_applet, self.sp_electro_applet]
 
-        self.sys_fugas_buttons = Button(310, 370, 60, 60, "", images_path_lev1_sys+"/fugas.png", self.sys_fugas)
-        self.sys_optika_buttons = Button(310, 440, 60, 60, "", images_path_lev1_sys+"/optika.png", self.sys_optika)
-        self.sys_electro_reloaded_buttons = Button(310, 510, 60, 60, "", images_path_lev1_sys+"/electro_reloaded.png", self.sys_electro_reloaded)
+        self.sys_fugas_buttons = Button(310, 370, 60, 60, "", images_path_lev1_sys + "/fugas.png", self.sys_fugas)
+        self.sys_optika_buttons = Button(310, 440, 60, 60, "", images_path_lev1_sys + "/optika.png", self.sys_optika)
+        self.sys_electro_reloaded_buttons = Button(310, 510, 60, 60, "", images_path_lev1_sys + "/electro_reloaded.png",
+                                                   self.sys_electro_reloaded)
 
         self.sys_fugas_applet = TextApplet(390, 390, 200, 50, "Фугасные боеприпасы: 2000 железа, 800 сырья, 500 золота")
-        self.sys_optika_applet = TextApplet(390, 460, 200, 50, "Разработка новой оптики: 1000 железа, 1500 сырья, 800 золота")
-        self.sys_electro_reloaded_applet = TextApplet(390, 530, 200, 50, "Электрическая система перезарядки: 500 железа, 2000 сырья, 1200 золота")
+        self.sys_optika_applet = TextApplet(390, 460, 200, 50,
+                                            "Разработка новой оптики: 1000 железа, 1500 сырья, 800 золота")
+        self.sys_electro_reloaded_applet = TextApplet(390, 530, 200, 50,
+                                                      "Электрическая система перезарядки: 500 железа, 2000 сырья, 1200 золота")
 
-        self.sys_buttons_lev1 = [self.sys_fugas_buttons, self.sys_optika_buttons, self.sys_electro_reloaded_buttons, self.close_button]
-        self.sys_applets_lev1 = [self.sys_fugas_applet,  self.sys_optika_applet, self.sys_electro_reloaded_applet]
+        self.sys_buttons_lev1 = [self.sys_fugas_buttons, self.sys_optika_buttons, self.sys_electro_reloaded_buttons,
+                                 self.close_button]
+        self.sys_applets_lev1 = [self.sys_fugas_applet, self.sys_optika_applet, self.sys_electro_reloaded_applet]
 
-        self.sys_giroskop_buttons = Button(310, 370, 60, 60, "", images_path_lev2_sys+"/giroskop.png", self.sys_giroskop)
-        self.sys_bik_system_buttons = Button(310, 440, 60, 60, "", images_path_lev2_sys+"/bik_system.png", self.sys_bik_system)
+        self.sys_giroskop_buttons = Button(310, 370, 60, 60, "", images_path_lev2_sys + "/giroskop.png",
+                                           self.sys_giroskop)
+        self.sys_bik_system_buttons = Button(310, 440, 60, 60, "", images_path_lev2_sys + "/bik_system.png",
+                                             self.sys_bik_system)
 
-        self.sys_giroskop_applet = TextApplet(390, 390, 200, 50, "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
-        self.sys_bik_system_applet = TextApplet(390, 460, 200, 50, "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
+        self.sys_giroskop_applet = TextApplet(390, 390, 200, 50,
+                                              "Внедрение гироскопа в снаряды: 2400 железа, 3000 сырья, 2300 золота")
+        self.sys_bik_system_applet = TextApplet(390, 460, 200, 50,
+                                                "Бикалиберная система на гаубицах: 4000 железа, 5000 сырья, 10000 золота")
 
         self.sys_buttons_lev2 = [self.sys_giroskop_buttons, self.sys_bik_system_buttons]
         self.sys_applets_lev2 = [self.sys_giroskop_applet, self.sys_bik_system_applet]
@@ -206,6 +221,7 @@ class ProgressTab:
             if self.check_armor_unit_one():
                 for button in self.armored_buttons_lev2:
                     button.draw(screen, self.font)
+
                 for applet in self.armored_applets_lev2:
                     applet.draw(screen, self.font)
 
@@ -290,7 +306,6 @@ class ProgressTab:
             for button in self.buttons:
                 button.handle_event(event)
 
-
     def armored_vehicles_action(self):
         if not self.armored_vehicles_open:
             self.armored_vehicles_open = True
@@ -318,6 +333,7 @@ class ProgressTab:
             self.heavy_weapons_button.enabled = False
             self.heavy_weapons_applet.enabled = False
             self.display_message("Тяжелое оружие улучшено!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.update_buttons_state()
@@ -330,6 +346,7 @@ class ProgressTab:
             self.heavy_armor_button.enabled = False
             self.heavy_armor_applet.enabled = False
             self.display_message("Тяжелая амуниция улучшена!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.update_buttons_state()
@@ -342,6 +359,7 @@ class ProgressTab:
             self.unique_alloys_button.enabled = False
             self.unique_alloys_applet.enabled = False
             self.display_message("Уникальные сплавы улучшены!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.update_buttons_state()
@@ -354,6 +372,8 @@ class ProgressTab:
             self.advanced_machines_button.enabled = False
             self.advanced_machines_applet.enabled = False
             self.display_message("Улучшенные станки установлены!")
+            self.arm_unit.append(1)
+            print(f"arm_unit updated: {self.arm_unit}")
         else:
             print("Не хватает ресурсов")
         self.update_buttons_state()
@@ -366,6 +386,7 @@ class ProgressTab:
             self.dvg_buttons.enabled = False
             self.dvg_applet.enabled = False
             self.display_message("Двигатели нового поколения получены!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -377,6 +398,7 @@ class ProgressTab:
             self.sbor_buttons.enabled = False
             self.sbor_applet.enabled = False
             self.display_message("Новая сборочная линия построена!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -388,6 +410,7 @@ class ProgressTab:
             self.kum_buttons.enabled = False
             self.kum_applet.enabled = False
             self.display_message("Кумулятивные боеприпасы получены!")
+            self.arm_unit.append(1)
         else:
             print("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -426,6 +449,7 @@ class ProgressTab:
             self.sp_ammo_buttons.enabled = False
             self.sp_ammo_applet.enabled = False
             self.display_message("Улучшенные винтовки получены")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов!")
         self.update_buttons_state()
@@ -437,6 +461,7 @@ class ProgressTab:
             self.sp_appar_buttons.enabled = False
             self.sp_appar_applet.enabled = False
             self.display_message("Полученна новая аппаратура")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -448,6 +473,7 @@ class ProgressTab:
             self.sp_connect_buttons.enabled = False
             self.sp_connect_applet.enabled = False
             self.display_message("Теперь наш обзор стал шире")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -459,6 +485,7 @@ class ProgressTab:
             self.sp_ekip_buttons.enabled = False
             self.sp_ekip_applet.enabled = False
             self.display_message("Теперь нас будут замечать с меньшего расстояния")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -470,6 +497,7 @@ class ProgressTab:
             self.sp_aggit_buttons.enabled = False
             self.sp_aggit_applet.enabled = False
             self.display_message("Теперь мы можем саботировать экономику противника")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -480,6 +508,7 @@ class ProgressTab:
             self.sp_bio_buttons.enabled = False
             self.sp_bio_applet.enabled = False
             self.display_message("Теперь наши солдаты стали значительно крепче")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -490,6 +519,7 @@ class ProgressTab:
             self.sp_electro_buttons.enabled = False
             self.sp_electro_applet.enabled = False
             self.display_message("Теперь мы получаем данные об их передвижении")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -508,6 +538,7 @@ class ProgressTab:
             self.sys_fugas_buttons.enabled = False
             self.sys_fugas_applet.enabled = False
             self.display_message("Урон по пехоте увеличен в 4.5 раза")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -518,6 +549,7 @@ class ProgressTab:
             self.sys_optika_buttons.enabled = False
             self.sys_optika_applet.enabled = False
             self.display_message("Дальность обстрела орудий увеличена")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -528,6 +560,7 @@ class ProgressTab:
             self.sys_electro_reloaded_buttons.enabled = False
             self.sys_electro_reloaded_applet.enabled = False
             self.display_message("Увеличена скорость перезарядки орудий")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -538,6 +571,7 @@ class ProgressTab:
             self.sys_giroskop_buttons.enabled = False
             self.sys_giroskop_applet.enabled = False
             self.display_message("Теперь снаряды будут точнее")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -548,6 +582,7 @@ class ProgressTab:
             self.sys_bik_system_buttons.enabled = False
             self.sys_bik_system_applet.enabled = False
             self.display_message("Теперь гаубицы могут стрелять в любую точку карты")
+            self.arm_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -594,6 +629,16 @@ class ProgressTab:
                 button.enabled = False
             for applet in self.sys_applets_lev2:
                 applet.enabled = False
+
+    def check_army(self):
+        if 2 > len(self.arm_unit) > 0:
+            return 1
+        elif 5 > len(self.arm_unit) > 3:
+            return 2
+        elif len(self.arm_unit) >= 5:
+            return 3
+        else:
+            return 0
 
     def check_all_upgrades_purchased(self):
         if self.check_armor_unit_one() and self.check_armor_unit_two() or self.check_sp_unit_one() and self.check_sp_unit_two() or self.check_sys_unit_one() and self.check_sys_unit_two():
