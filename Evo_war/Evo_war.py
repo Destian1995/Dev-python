@@ -1,4 +1,3 @@
-import os
 import random
 from army import *
 import sys
@@ -42,7 +41,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 # Цвета
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREY = (128, 128, 128)
+GREY = (30, 30, 60)
 BEIGE = (222, 184, 135)
 PANEL = (100, 149, 237)
 GREEN = (190, 255, 190)

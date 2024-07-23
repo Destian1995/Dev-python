@@ -62,6 +62,8 @@ class ProgressTab:
         self.show_progress_window = True
         self.armored_vehicles_open = False
         self.arm_unit = []
+        self.sys_unit = []
+        self.sp_unit = []
         self.speznaz_open = False
         self.system_open = False
         self.message = ""
@@ -449,7 +451,7 @@ class ProgressTab:
             self.sp_ammo_buttons.enabled = False
             self.sp_ammo_applet.enabled = False
             self.display_message("Улучшенные винтовки получены")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов!")
         self.update_buttons_state()
@@ -461,7 +463,7 @@ class ProgressTab:
             self.sp_appar_buttons.enabled = False
             self.sp_appar_applet.enabled = False
             self.display_message("Полученна новая аппаратура")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -473,7 +475,7 @@ class ProgressTab:
             self.sp_connect_buttons.enabled = False
             self.sp_connect_applet.enabled = False
             self.display_message("Теперь наш обзор стал шире")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -485,7 +487,7 @@ class ProgressTab:
             self.sp_ekip_buttons.enabled = False
             self.sp_ekip_applet.enabled = False
             self.display_message("Теперь нас будут замечать с меньшего расстояния")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.update_buttons_state()
@@ -497,7 +499,7 @@ class ProgressTab:
             self.sp_aggit_buttons.enabled = False
             self.sp_aggit_applet.enabled = False
             self.display_message("Теперь мы можем саботировать экономику противника")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -508,7 +510,7 @@ class ProgressTab:
             self.sp_bio_buttons.enabled = False
             self.sp_bio_applet.enabled = False
             self.display_message("Теперь наши солдаты стали значительно крепче")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -519,7 +521,7 @@ class ProgressTab:
             self.sp_electro_buttons.enabled = False
             self.sp_electro_applet.enabled = False
             self.display_message("Теперь мы получаем данные об их передвижении")
-            self.arm_unit.append(1)
+            self.sp_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -538,7 +540,7 @@ class ProgressTab:
             self.sys_fugas_buttons.enabled = False
             self.sys_fugas_applet.enabled = False
             self.display_message("Урон по пехоте увеличен в 4.5 раза")
-            self.arm_unit.append(1)
+            self.sys_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -549,7 +551,7 @@ class ProgressTab:
             self.sys_optika_buttons.enabled = False
             self.sys_optika_applet.enabled = False
             self.display_message("Дальность обстрела орудий увеличена")
-            self.arm_unit.append(1)
+            self.sys_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -560,7 +562,7 @@ class ProgressTab:
             self.sys_electro_reloaded_buttons.enabled = False
             self.sys_electro_reloaded_applet.enabled = False
             self.display_message("Увеличена скорость перезарядки орудий")
-            self.arm_unit.append(1)
+            self.sys_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -571,7 +573,7 @@ class ProgressTab:
             self.sys_giroskop_buttons.enabled = False
             self.sys_giroskop_applet.enabled = False
             self.display_message("Теперь снаряды будут точнее")
-            self.arm_unit.append(1)
+            self.sys_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -582,7 +584,7 @@ class ProgressTab:
             self.sys_bik_system_buttons.enabled = False
             self.sys_bik_system_applet.enabled = False
             self.display_message("Теперь гаубицы могут стрелять в любую точку карты")
-            self.arm_unit.append(1)
+            self.sys_unit.append(1)
         else:
             self.display_message("Не хватает ресурсов")
         self.check_all_upgrades_purchased()
@@ -630,12 +632,22 @@ class ProgressTab:
             for applet in self.sys_applets_lev2:
                 applet.enabled = False
 
-    def check_army(self):
-        if 2 > len(self.arm_unit) > 0:
+    def check_army_armor(self):
+        if 3 > len(self.arm_unit) > 0:
             return 1
-        elif 5 > len(self.arm_unit) > 3:
+        elif 5 > len(self.arm_unit) >= 3:
             return 2
         elif len(self.arm_unit) >= 5:
+            return 3
+        else:
+            return 0
+
+    def check_army_sys(self):
+        if 2 > len(self.sys_unit) > 0:
+            return 1
+        elif 4 > len(self.sys_unit) >= 2:
+            return 2
+        elif len(self.sys_unit) >= 4:
             return 3
         else:
             return 0
