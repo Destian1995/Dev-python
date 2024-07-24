@@ -61,11 +61,11 @@ class ProgressTab:
         self.label_text = "Выберите свою специализацию"
         self.show_progress_window = True
         self.armored_vehicles_open = False
+        self.speznaz_open = False
+        self.system_open = False
         self.arm_unit = []
         self.sys_unit = []
         self.sp_unit = []
-        self.speznaz_open = False
-        self.system_open = False
         self.message = ""
         self.message_time = 0
         self.all_upgrades_purchased = False
@@ -648,6 +648,16 @@ class ProgressTab:
         elif 4 > len(self.sys_unit) >= 2:
             return 2
         elif len(self.sys_unit) >= 4:
+            return 3
+        else:
+            return 0
+
+    def check_army_sp(self):
+        if 2 > len(self.sp_unit) > 0:
+            return 1
+        elif 4 > len(self.sp_unit) >= 2:
+            return 2
+        elif len(self.sp_unit) >= 4:
             return 3
         else:
             return 0
