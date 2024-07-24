@@ -156,11 +156,18 @@ class Map:
 
 def place_unit(unit_type, icon_path, x, y):
     print(f"Добавление единицы {unit_type} на карту")
-    unit_icon = pygame.image.load(icon_path)
-    unit_icon = pygame.transform.scale(unit_icon, (50, 50))  # Размер иконки
-    units_on_map.append({"тип": unit_type, "изображение": unit_icon, "позиция": (x, y)})
-    army_tab.units.append(Unit(x, y, unit_type))  # Создание объекта Unit и добавление его в список units
 
+    # Создание временного объекта Unit, чтобы получить размер иконки
+    temp_unit = Unit(x, y, unit_type)
+    unit_size = temp_unit.image.get_size()
+
+    # Загрузка и изменение размера иконки в соответствии с размером из image_unit
+    unit_icon = pygame.image.load(icon_path)
+    unit_icon = pygame.transform.scale(unit_icon, unit_size)
+
+    # Добавление юнита на карту и в список армии
+    units_on_map.append({"тип": unit_type, "изображение": unit_icon, "позиция": (x, y)})
+    army_tab.units.append(Unit(x, y, unit_type))
 
 def units_check():
     for unit in units_on_map:

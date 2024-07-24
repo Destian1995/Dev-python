@@ -36,7 +36,7 @@ class Unit:
         elif self.unit_type == "Штурмовик":
             return pygame.transform.scale(pygame.image.load(unit_shturmovik), (40, 40))
         elif self.unit_type == "Танк":
-            return pygame.transform.scale(pygame.image.load(unit_tank), (60, 60))
+            return pygame.transform.scale(pygame.image.load(unit_tank), (70, 70))
         elif self.unit_type == "Пулемет":
             return pygame.transform.scale(pygame.image.load(unit_pul), (50, 50))
         elif self.unit_type == "СПТ":
