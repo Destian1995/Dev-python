@@ -1,5 +1,5 @@
 Скриншот из игры.
-![2024-07-24_124716](https://github.com/user-attachments/assets/123eda1b-0a64-495e-90ab-3d02b065a889)
+![image](https://github.com/user-attachments/assets/2094c0b4-79ea-4493-a108-a90769221d47)
 
 
 
