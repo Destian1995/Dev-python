@@ -1,3 +1,4 @@
+![photo_2024-08-06_16-15-54](https://github.com/user-attachments/assets/cdd825e6-5ff8-44f7-9bc8-608e51cb9974)
 
 ## Документация по приложению Таск-менеджер
 
