@@ -1,4 +1,7 @@
 ![photo_2024-08-06_16-15-54](https://github.com/user-attachments/assets/cdd825e6-5ff8-44f7-9bc8-608e51cb9974)
+![photo_2024-08-26_10-07-26](https://github.com/user-attachments/assets/1d9a6948-2b2c-409a-8a5e-947b92448e13)
+![photo_2024-08-26_10-07-31](https://github.com/user-attachments/assets/93dab969-b733-4763-b03b-33e4a70b06fb)
+
 
 ## Документация по приложению Таск-менеджер
 
