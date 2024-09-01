@@ -98,7 +98,7 @@ async def main():
     parsing_site(driver, save_folder)
     driver.quit()
 
-    telegram_token = '7251450546:AAFulmaCRRFLp04Fk8eqs8WPgPDDPItO4kE'
+    telegram_token = '*********************************************'
     telegram_chat_id = '@girls_legs_beatiful'
 
     images = [os.path.join(save_folder, image_file) for image_file in os.listdir(save_folder)]
