@@ -61,7 +61,7 @@ def download_image(url, folder):
 
     filename = url.split('/')[-1]
     filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-    filename = os.path.splitext(filename)[0] + '.jpg'  # Убедитесь, что имя файла имеет расширение .jpg
+    filename = os.path.splitext(filename)[0] + '.jpg'
     filepath = os.path.join(folder, filename)
 
     response = requests.get(url)
