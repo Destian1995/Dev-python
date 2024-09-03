@@ -1,13 +1,14 @@
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 from telegram import Bot
 import asyncio
 import os
 import re
 import schedule
+import time
 
 
 def clear_folder(folder):
@@ -30,6 +31,7 @@ def connect_site(url):
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')  # Важно для контейнеров, уменьшает использование памяти
     driver = webdriver.Chrome(options=options)
     driver.get(url)
     return driver
@@ -46,13 +48,31 @@ def parametr_files(path):
 
 
 def parsing_site(driver, save_folder):
-    image_elements = driver.find_elements(By.XPATH, '//img')
-    print(f"Найдено {len(image_elements)} изображений")
+    try:
+        # Прокрутка страницы вниз на 2 секунды
+        scroll_pause_time = 2
+        last_height = driver.execute_script("return document.body.scrollHeight")
 
-    for img in image_elements:
-        img_url = img.get_attribute('src') or img.get_attribute('data-src') or img.get_attribute('srcset')
-        if img_url:
-            download_image(img_url, save_folder)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(scroll_pause_time)
+
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            print("Страница не была прокручена дальше.")
+
+        image_elements = driver.find_elements(By.XPATH, '//img')
+        print(f"Найдено {len(image_elements)} изображений")
+
+        for img in image_elements:
+            try:
+                img_url = img.get_attribute('src') or img.get_attribute('data-src') or img.get_attribute('srcset')
+                if img_url:
+                    download_image(img_url, save_folder)
+            except Exception as e:
+                print(f"Ошибка при обработке изображения: {e}")
+
+    except Exception as e:
+        print(f"Ошибка при парсинге сайта: {e}")
 
 
 def download_image(url, folder):
@@ -61,30 +81,44 @@ def download_image(url, folder):
 
     filename = url.split('/')[-1]
     filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-    filename = os.path.splitext(filename)[0] + '.jpg'
+    filename = os.path.splitext(filename)[0] + '.jpg'  # Убедитесь, что имя файла имеет расширение .jpg
     filepath = os.path.join(folder, filename)
 
-    response = requests.get(url)
-    if response.status_code == 200 and 'image' in response.headers.get('Content-Type', ''):
-        try:
-            image = Image.open(BytesIO(response.content))
-            # Проверка формата изображения
-            if image.format not in ['JPEG', 'JPG']:
-                print(f"Пропуск изображения {url} - не JPG или JPEG")
-                return
-            image = image.convert('RGB')
-            image.save(filepath, 'JPEG')
-            print(f"Сохранено: {filepath}")
-        except Exception as e:
-            print(f"Не удалось сохранить изображение: {url}. Ошибка: {e}")
-    else:
-        print(f"Не удалось скачать изображение: {url} (не изображение или ошибка загрузки)")
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200 and 'image' in response.headers.get('Content-Type', ''):
+            try:
+                image = Image.open(BytesIO(response.content))
+                # Проверка изображения на валидность
+                image.verify()
+                image = Image.open(BytesIO(response.content))  # Открыть заново после verify
+                if image.format not in ['JPEG', 'JPG']:
+                    print(f"Пропуск изображения {url} - не JPG или JPEG")
+                    return
+                image = image.convert('RGB')
+                image.save(filepath, 'JPEG')
+                print(f"Сохранено: {filepath}")
+            except UnidentifiedImageError:
+                print(f"Не удалось распознать изображение: {url}")
+                return    # Переход к следующему изображению
+            except Exception as e:
+                print(f"Ошибка при обработке изображения: {url}. Ошибка: {e}")
+                return    # Переход к следующему изображению
+        else:
+            print(f"Пропуск файла: {url} (не изображение или ошибка загрузки)")
+            return    # Переход к следующему изображению
+    except (Exception, IOError) as e:
+        print(f"Не удалось сохранить изображение: {url}. Ошибка: {e}")
+        return    # Переход к следующему изображению
 
 
 async def send_image_to_telegram(token, chat_id, image_path):
     bot = Bot(token=token)
-    with open(image_path, 'rb') as image_file:
-        await bot.send_photo(chat_id=chat_id, photo=image_file)
+    try:
+        with open(image_path, 'rb') as image_file:
+            await bot.send_photo(chat_id=chat_id, photo=image_file)
+    except Exception as e:
+        print(f"Ошибка при отправке изображения {image_path} в Telegram: {e}")
 
 
 async def publish_images_on_schedule(token, chat_id, images, times):
@@ -104,9 +138,10 @@ async def send_images(token, chat_id, images):
     print(f"Изображение {image_path} отправлено")
 
 
+
 async def main():
-    path = r'C:\Users\lerdo\Desktop\parametr_bots\parameters.txt'
-    save_folder = r'C:\Users\lerdo\Desktop\parametr_bots\downloaded_images'
+    path = r'C:\Users\lerdo\Desktop\parametr_bots\parameters.txt'  # Обновите путь для контейнера
+    save_folder = r'C:\Users\lerdo\Desktop\parametr_bots\downloaded_images'  # Обновите путь для контейнера
 
     # Очистка каталога перед парсингом
     clear_folder(save_folder)
@@ -115,7 +150,7 @@ async def main():
     parsing_site(driver, save_folder)
     driver.quit()
 
-    telegram_token = '*******************************'
+    telegram_token = '**************************************'
     telegram_chat_id = '@girls_legs_beatiful'
 
     images = [os.path.join(save_folder, image_file) for image_file in os.listdir(save_folder)]
