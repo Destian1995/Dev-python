@@ -1,27 +1,12 @@
+import os
 import random
 from army import *
 import sys
 import pygame
-
-sys.path.append(os.path.dirname(__file__))
-
-
-def check_files(directory, extensions):
-    files = []
-    for filename in os.listdir(directory):
-        filepath = os.path.join(directory, filename)
-        if os.path.isfile(filepath):
-            file_extension = os.path.splitext(filename)[1][1:].lower()
-            if file_extension in extensions:
-                files.append(filepath)
-    return files
-
+ 
 
 # Путь к файлам
-directory_path = r"C:\Users\User\Desktop\C.P.E"
-extensions_to_check = ['png', 'jpg']
-found_files = check_files(directory_path, extensions_to_check)
-print("Найденные файлы:", found_files)
+directory_path = os.getcwd() + r'\icons'
 
 # Путь к изображениям баз и объектов
 base_image_path1 = directory_path + r"\base\base1.png"  # Изображение для базы 1

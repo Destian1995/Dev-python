@@ -1,13 +1,14 @@
 import pygame
 import time
+import os
 
-images_path = r'C:\Users\User\Desktop\C.P.E\progress'
-images_path_lev1_arm = r'C:\Users\User\Desktop\C.P.E\progress\armor\1_level'
-images_path_lev2_arm = r'C:\Users\User\Desktop\C.P.E\progress\armor\2_level'
-images_path_lev1_sp = r'C:\Users\User\Desktop\C.P.E\progress\spez\1_level'
-images_path_lev2_sp = r'C:\Users\User\Desktop\C.P.E\progress\spez\2_level'
-images_path_lev1_sys = r'C:\Users\User\Desktop\C.P.E\progress\system\1_level'
-images_path_lev2_sys = r'C:\Users\User\Desktop\C.P.E\progress\system\2_level'
+images_path = os.getcwd() + r'\icons'
+images_path_lev1_arm = images_path + r'\progress\armor\1_level'
+images_path_lev2_arm = images_path + r'\progress\armor\2_level'
+images_path_lev1_sp = images_path + r'\progress\spez\1_level'
+images_path_lev2_sp = images_path + r'\progress\spez\2_level'
+images_path_lev1_sys = images_path + r'\progress\system\1_level'
+images_path_lev2_sys = images_path + r'\progress\system\2_level'
 
 
 class Button:
@@ -73,12 +74,12 @@ class ProgressTab:
         self.transition_duration = 0.5
 
         # General buttons
-        self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path + "/special_forces.png",
+        self.special_forces_button = Button(350, 350, 150, 160, "Спецназ", images_path + "/progress/special_forces.png",
                                             self.special_forces_action)
-        self.armored_vehicles_button = Button(550, 350, 150, 160, "Бронетехника", images_path + "/armored_vehicles.png",
+        self.armored_vehicles_button = Button(550, 350, 150, 160, "Бронетехника", images_path + "/progress/armored_vehicles.png",
                                               self.armored_vehicles_action)
         self.computing_systems_button = Button(750, 350, 150, 160, "Выч. системы",
-                                               images_path + "/computing_systems.png", self.computing_systems_action)
+                                               images_path + "/progress/computing_systems.png", self.computing_systems_action)
         self.close_button = Button(955, 280, 50, 50, "", images_path + "/close.png", self.close_action)
 
         self.buttons = [self.special_forces_button, self.armored_vehicles_button, self.computing_systems_button,

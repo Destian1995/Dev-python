@@ -2,18 +2,23 @@ import os
 import math
 from progress_tab import *  # Отсюда импортируется и pygame в том числе
 
-images_path = r'C:\Users\User\Desktop\C.P.E'
-unit_opolchenec = os.path.join(images_path, r'units\base2\opolch.png')
-unit_bronemashina = os.path.join(images_path, r'units\base2\bronemashina.png')
-unit_shturmovik = os.path.join(images_path, r'units\base2\shturmovik.png')
-unit_tank = os.path.join(images_path, r'units\base2\tank.png')
-unit_btr = os.path.join(images_path, r'units\base2\btr.png')
-unit_pul = os.path.join(images_path, r'units\base2\pulemet.png')
-unit_spt = os.path.join(images_path, r'units\base2\spt-75.png')
-unit_sgb = os.path.join(images_path, r'units\base2\sgb-200.png')
-unit_sold = os.path.join(images_path, r'units\base2\sold.png')
-unit_spez = os.path.join(images_path, r'units\base2\spez.png')
-unit_fear = os.path.join(images_path, r'units\base2\fear.png')
+import os
+
+# Определяем путь к каталогу icons в текущем рабочем каталоге
+images_path = os.path.join(os.getcwd(), 'icons')
+
+# Определяем пути к файлам с изображениями
+unit_opolchenec = os.path.join(images_path, 'units', 'base2', 'opolch.png')
+unit_bronemashina = os.path.join(images_path, 'units', 'base2', 'bronemashina.png')
+unit_shturmovik = os.path.join(images_path, 'units', 'base2', 'shturmovik.png')
+unit_tank = os.path.join(images_path, 'units', 'base2', 'tank.png')
+unit_btr = os.path.join(images_path, 'units', 'base2', 'btr.png')
+unit_pul = os.path.join(images_path, 'units', 'base2', 'pulemet.png')
+unit_spt = os.path.join(images_path, 'units', 'base2', 'spt-75.png')
+unit_sgb = os.path.join(images_path, 'units', 'base2', 'sgb-200.png')
+unit_sold = os.path.join(images_path, 'units', 'base2', 'sold.png')
+unit_spez = os.path.join(images_path, 'units', 'base2', 'spez.png')
+unit_fear = os.path.join(images_path, 'units', 'base2', 'fear.png')
 
 
 class Unit:
